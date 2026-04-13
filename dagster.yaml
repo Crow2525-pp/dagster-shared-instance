@@ -1,0 +1,100 @@
+scheduler:
+  module: dagster.core.scheduler
+  class: DagsterDaemonScheduler
+
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
+
+run_launcher:
+  module: dagster_docker
+  class: DockerRunLauncher
+  config:
+    env_vars:
+      - DAGSTER_NETWORK
+      - DAGSTER_POSTGRES_HOST
+      - DAGSTER_POSTGRES_PORT
+      - DAGSTER_POSTGRES_DB
+      - DAGSTER_POSTGRES_USER
+      - DAGSTER_POSTGRES_PASSWORD
+      - POSTGRES_ADMIN_USER
+      - POSTGRES_ADMIN_PASSWORD
+      - DBT_EXECUTION_CONTEXT
+      - GRAFANA_URL
+      - GRAFANA_USER
+      - GRAFANA_ADMIN_PASSWORD
+      - GRAFANA_TOKEN
+      - DASHBOARD_POLICY_GATE_WARN_ONLY
+      - DASHBOARD_QUALITY_WARN_ONLY
+      - KEEP_SYNC_ENABLED
+      - GOOGLE_KEEP_TOKEN_PATH
+      - GOOGLE_KEEP_LIST_NAME
+      - GOOGLE_KEEP_EMAIL
+      - COLES_STATE_PATH
+      - KEEP_AUTO_ADD_MIN_CONFIDENCE
+      - KEEP_DELETE_ON_ADD
+      - ANTHROPIC_API_KEY
+      - USE_NIX_DEVSHELL
+      - PLAYWRIGHT_HEADED
+    network:
+      env: DAGSTER_NETWORK
+    container_kwargs:
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /tmp/io_manager_storage:/tmp/io_manager_storage
+        - /tmp/dagster-data:/tmp/dagster-data
+
+run_storage:
+  module: dagster_postgres.run_storage
+  class: PostgresRunStorage
+  config:
+    postgres_db:
+      hostname:
+        env: DAGSTER_POSTGRES_HOST
+      username:
+        env: DAGSTER_POSTGRES_USER
+      password:
+        env: DAGSTER_POSTGRES_PASSWORD
+      db_name:
+        env: DAGSTER_POSTGRES_DB
+      port:
+        env: DAGSTER_POSTGRES_PORT
+
+schedule_storage:
+  module: dagster_postgres.schedule_storage
+  class: PostgresScheduleStorage
+  config:
+    postgres_db:
+      hostname:
+        env: DAGSTER_POSTGRES_HOST
+      username:
+        env: DAGSTER_POSTGRES_USER
+      password:
+        env: DAGSTER_POSTGRES_PASSWORD
+      db_name:
+        env: DAGSTER_POSTGRES_DB
+      port:
+        env: DAGSTER_POSTGRES_PORT
+
+event_log_storage:
+  module: dagster_postgres.event_log
+  class: PostgresEventLogStorage
+  config:
+    postgres_db:
+      hostname:
+        env: DAGSTER_POSTGRES_HOST
+      username:
+        env: DAGSTER_POSTGRES_USER
+      password:
+        env: DAGSTER_POSTGRES_PASSWORD
+      db_name:
+        env: DAGSTER_POSTGRES_DB
+      port:
+        env: DAGSTER_POSTGRES_PORT
+
+compute_logs:
+  module: dagster.core.storage.local_compute_log_manager
+  class: LocalComputeLogManager
+  config:
+    base_dir: /tmp/dagster-compute-logs
+

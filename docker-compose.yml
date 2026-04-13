@@ -1,0 +1,134 @@
+services:
+  dagster-webserver:
+    build:
+      context: .
+      args:
+        DAGSTER_HOME: ${DAGSTER_HOME}
+    command:
+      - dagster-webserver
+      - --host
+      - 0.0.0.0
+      - --port
+      - "3000"
+      - --workspace
+      - ${DAGSTER_HOME}/workspace.yaml
+    ports:
+      - "${DAGSTER_PORT:-3002}:3000"
+    environment:
+      DAGSTER_HOME: ${DAGSTER_HOME}
+      DAGSTER_NETWORK: ${DAGSTER_NETWORK}
+      DAGSTER_POSTGRES_HOST: ${DAGSTER_POSTGRES_HOST}
+      DAGSTER_POSTGRES_PORT: ${DAGSTER_POSTGRES_PORT}
+      DAGSTER_POSTGRES_DB: ${DAGSTER_POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${DAGSTER_POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${DAGSTER_POSTGRES_PASSWORD}
+      POSTGRES_ADMIN_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_ADMIN_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      DBT_EXECUTION_CONTEXT: ${DBT_EXECUTION_CONTEXT:-dagster}
+      GRAFANA_URL: ${GRAFANA_URL}
+      GRAFANA_USER: ${GRAFANA_USER}
+      GRAFANA_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GRAFANA_TOKEN: ${GRAFANA_TOKEN}
+      DASHBOARD_POLICY_GATE_WARN_ONLY: ${DASHBOARD_POLICY_GATE_WARN_ONLY:-false}
+      DASHBOARD_QUALITY_WARN_ONLY: ${DASHBOARD_QUALITY_WARN_ONLY:-false}
+      KEEP_SYNC_ENABLED: ${KEEP_SYNC_ENABLED:-1}
+      GOOGLE_KEEP_TOKEN_PATH: ${GOOGLE_KEEP_TOKEN_PATH}
+      GOOGLE_KEEP_LIST_NAME: ${GOOGLE_KEEP_LIST_NAME}
+      GOOGLE_KEEP_EMAIL: ${GOOGLE_KEEP_EMAIL}
+      COLES_STATE_PATH: ${COLES_STATE_PATH}
+      KEEP_AUTO_ADD_MIN_CONFIDENCE: ${KEEP_AUTO_ADD_MIN_CONFIDENCE}
+      KEEP_DELETE_ON_ADD: ${KEEP_DELETE_ON_ADD}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      USE_NIX_DEVSHELL: ${USE_NIX_DEVSHELL:-0}
+      PLAYWRIGHT_HEADED: ${PLAYWRIGHT_HEADED:-0}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - /tmp/dagster-data:/tmp/dagster-data
+    depends_on:
+      dagster-postgres:
+        condition: service_healthy
+    networks:
+      - dagster
+    env_file:
+      - .env
+
+  dagster-daemon:
+    build:
+      context: .
+      args:
+        DAGSTER_HOME: ${DAGSTER_HOME}
+    command:
+      - dagster-daemon
+      - run
+      - --workspace
+      - ${DAGSTER_HOME}/workspace.yaml
+    restart: on-failure
+    environment:
+      DAGSTER_HOME: ${DAGSTER_HOME}
+      DAGSTER_NETWORK: ${DAGSTER_NETWORK}
+      DAGSTER_POSTGRES_HOST: ${DAGSTER_POSTGRES_HOST}
+      DAGSTER_POSTGRES_PORT: ${DAGSTER_POSTGRES_PORT}
+      DAGSTER_POSTGRES_DB: ${DAGSTER_POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${DAGSTER_POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${DAGSTER_POSTGRES_PASSWORD}
+      POSTGRES_ADMIN_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_ADMIN_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      DBT_EXECUTION_CONTEXT: ${DBT_EXECUTION_CONTEXT:-dagster}
+      GRAFANA_URL: ${GRAFANA_URL}
+      GRAFANA_USER: ${GRAFANA_USER}
+      GRAFANA_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GRAFANA_TOKEN: ${GRAFANA_TOKEN}
+      DASHBOARD_POLICY_GATE_WARN_ONLY: ${DASHBOARD_POLICY_GATE_WARN_ONLY:-false}
+      DASHBOARD_QUALITY_WARN_ONLY: ${DASHBOARD_QUALITY_WARN_ONLY:-false}
+      KEEP_SYNC_ENABLED: ${KEEP_SYNC_ENABLED:-1}
+      GOOGLE_KEEP_TOKEN_PATH: ${GOOGLE_KEEP_TOKEN_PATH}
+      GOOGLE_KEEP_LIST_NAME: ${GOOGLE_KEEP_LIST_NAME}
+      GOOGLE_KEEP_EMAIL: ${GOOGLE_KEEP_EMAIL}
+      COLES_STATE_PATH: ${COLES_STATE_PATH}
+      KEEP_AUTO_ADD_MIN_CONFIDENCE: ${KEEP_AUTO_ADD_MIN_CONFIDENCE}
+      KEEP_DELETE_ON_ADD: ${KEEP_DELETE_ON_ADD}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      USE_NIX_DEVSHELL: ${USE_NIX_DEVSHELL:-0}
+      PLAYWRIGHT_HEADED: ${PLAYWRIGHT_HEADED:-0}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - /tmp/dagster-data:/tmp/dagster-data
+    depends_on:
+      dagster-postgres:
+        condition: service_healthy
+    networks:
+      - dagster
+    env_file:
+      - .env
+
+  dagster-postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_DB: ${DAGSTER_POSTGRES_DB}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "${POSTGRES_ADMIN_USER}" -d "${DAGSTER_POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    volumes:
+      - dagster-postgres-data:/var/lib/postgresql/data
+    networks:
+      - dagster
+    env_file:
+      - .env
+
+volumes:
+  dagster-postgres-data:
+
+networks:
+  dagster:
+    name: ${DAGSTER_NETWORK:-dagster_shared_network}
+

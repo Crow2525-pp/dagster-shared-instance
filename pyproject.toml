@@ -1,0 +1,17 @@
+[project]
+name = "dagster-shared-instance"
+version = "0.1.0"
+description = "Shared Dagster webserver, daemon, and Postgres host for modular code locations."
+requires-python = ">=3.11"
+dependencies = [
+    "dagster>=1.13.0",
+    "dagster-docker>=0.29.0",
+    "dagster-postgres>=0.29.0",
+    "dagster-webserver>=1.13.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+]
+

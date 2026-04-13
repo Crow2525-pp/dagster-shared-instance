@@ -1,0 +1,10 @@
+load_from:
+  - grpc_server:
+      host: personal-finance
+      port: 4000
+      location_name: "personal_finance"
+  - grpc_server:
+      host: coles-shopper
+      port: 4000
+      location_name: "coles_llm_shopper"
+
