@@ -36,6 +36,9 @@ run_launcher:
       - ANTHROPIC_API_KEY
       - USE_NIX_DEVSHELL
       - PLAYWRIGHT_HEADED
+      - HA_URL
+      - HA_TOKEN
+      - HA_NOTIFY_SERVICE
     network:
       env: DAGSTER_NETWORK
     container_kwargs:
@@ -43,6 +46,9 @@ run_launcher:
         - /var/run/docker.sock:/var/run/docker.sock
         - /tmp/io_manager_storage:/tmp/io_manager_storage
         - /tmp/dagster-data:/tmp/dagster-data
+        # coles-llm-shopper run workers need the data volume to reach
+        # coles_state.json and keep_token.json at runtime.
+        - coles-llm-shopper_coles_data:/app/data
 
 run_storage:
   module: dagster_postgres.run_storage
