@@ -4,6 +4,7 @@ services:
       context: .
       args:
         DAGSTER_HOME: ${DAGSTER_HOME}
+    restart: unless-stopped
     command:
       - dagster-webserver
       - --host
@@ -45,6 +46,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/io_manager_storage:/tmp/io_manager_storage
       - /tmp/dagster-data:/tmp/dagster-data
+      - dagster-compute-logs:/tmp/dagster-compute-logs
     depends_on:
       dagster-postgres:
         condition: service_healthy
@@ -95,6 +97,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/io_manager_storage:/tmp/io_manager_storage
       - /tmp/dagster-data:/tmp/dagster-data
+      - dagster-compute-logs:/tmp/dagster-compute-logs
     depends_on:
       dagster-postgres:
         condition: service_healthy
@@ -127,6 +130,7 @@ services:
 
 volumes:
   dagster-postgres-data:
+  dagster-compute-logs:
 
 networks:
   dagster:
