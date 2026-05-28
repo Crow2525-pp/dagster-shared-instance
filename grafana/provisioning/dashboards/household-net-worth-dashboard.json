@@ -1,0 +1,2100 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 00 - Financial Control",
+      "type": "link",
+      "url": "/d/financial-review-command-center?orgId=1&${__url_time_range}"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "text",
+        "uid": "-- Text --"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 18,
+        "x": 6,
+        "y": 0
+      },
+      "id": 100,
+      "options": {
+        "content": "# 04 - Household Net Worth Analysis\n\n**What This Dashboard Shows:** Tracks wealth accumulation and net worth progression over time with health scoring and milestone tracking.\n\n**Key Metrics Explained:**\n* **Net Worth Health Score:** Classification from critical to excellent based on assets vs liabilities\n* **Assets vs Liabilities:** Breakdown with liquidity analysis showing readily accessible funds\n* **Debt-to-Asset Ratio:** Lower percentages indicate stronger financial position\n* **Monthly Progress:** Consistent increases indicate successful wealth building\n\n**Time Windows:**\n- Summary KPIs use the most recent complete month.\n- Trend panels cover the trailing 12 months unless noted.\n- Annual progress panels use complete years only.\n\n**How to Use:** Track wealth building progress with milestone goals. Focus on increasing assets and reducing debt-to-asset ratios over time.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "Dashboard Instructions",
+      "description": "Intentionally scrollable documentation panel. overflow-policy:allow-scroll",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Data recency for the current dashboard context.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 101,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH available_months AS (\n  SELECT budget_year_month,\n         to_date(budget_year_month || '-01', 'YYYY-MM-DD') AS month_date\n  FROM reporting.rpt_household_net_worth\n  WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n),\nlatest_period AS (\n  SELECT MAX(month_date) AS month_date\n  FROM available_months\n)\nSELECT\n  to_char((SELECT month_date FROM latest_period), 'Mon YYYY') AS \"Data Through\",\n  to_char(MAX(report_generated_at), 'YYYY-MM-DD HH24:MI') AS \"Last Refresh\"\nFROM reporting.rpt_household_net_worth\nWHERE to_date(budget_year_month || '-01', 'YYYY-MM-DD') = (SELECT month_date FROM latest_period);",
+          "refId": "A"
+        }
+      ],
+      "title": "Data Freshness",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "MOST RECENT COMPLETE MONTH (August 2025): Household net worth data excludes current incomplete month for accurate quarterly review",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": -50000
+              },
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "dark-green",
+                "value": 100000
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "id": 1,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT net_worth\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY transaction_year DESC, transaction_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Net Worth (Aug 2025)",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Financial health metrics with clear ranges and categories",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "net_worth_health_score"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Health Score"
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "min",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "financial_position_score"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Financial Position"
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Critical Debt"
+                      },
+                      "20": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "High Debt"
+                      },
+                      "40": {
+                        "color": "orange",
+                        "index": 2,
+                        "text": "Negative Net Worth"
+                      },
+                      "60": {
+                        "color": "yellow",
+                        "index": 3,
+                        "text": "Low Net Worth"
+                      },
+                      "80": {
+                        "color": "green",
+                        "index": 4,
+                        "text": "Positive Net Worth"
+                      },
+                      "100": {
+                        "color": "dark-green",
+                        "index": 5,
+                        "text": "Strong Net Worth"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wealth_milestone_score"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Wealth Milestone"
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Crisis Phase"
+                      },
+                      "20": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Recovery Phase"
+                      },
+                      "40": {
+                        "color": "orange",
+                        "index": 2,
+                        "text": "Rebuilding Phase"
+                      },
+                      "60": {
+                        "color": "yellow",
+                        "index": 3,
+                        "text": "Stability Phase"
+                      },
+                      "80": {
+                        "color": "green",
+                        "index": 4,
+                        "text": "Growth Phase"
+                      },
+                      "100": {
+                        "color": "dark-green",
+                        "index": 5,
+                        "text": "Wealth Phase"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 12
+      },
+      "id": 2,
+      "options": {
+        "displayMode": "basic",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 14
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  net_worth_health_score,\n  CASE \n    WHEN financial_position = 'Critical Debt' THEN 0\n    WHEN financial_position = 'High Debt' THEN 20\n    WHEN financial_position = 'Negative Net Worth' THEN 40\n    WHEN financial_position = 'Low Net Worth' THEN 60\n    WHEN financial_position = 'Positive Net Worth' THEN 80\n    WHEN financial_position = 'Strong Net Worth' THEN 100\n    ELSE 40\n  END as financial_position_score,\n  CASE \n    WHEN wealth_milestone = 'Crisis Phase' THEN 0\n    WHEN wealth_milestone = 'Recovery Phase' THEN 20\n    WHEN wealth_milestone = 'Rebuilding Phase' THEN 40\n    WHEN wealth_milestone = 'Stability Phase' THEN 60\n    WHEN wealth_milestone = 'Growth Phase' THEN 80\n    WHEN wealth_milestone = 'Wealth Phase' THEN 100\n    ELSE 40\n  END as wealth_milestone_score\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY transaction_year DESC, transaction_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Financial Health Status",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Assets vs Liabilities breakdown",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_assets"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Assets"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_liabilities"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Liabilities"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "liquid_assets"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Liquid Assets"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "property_assets"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Property Assets"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#DAA520",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "non_property_assets"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Other Assets"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2E8B57",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  total_assets,\n  total_liabilities,\n  liquid_assets,\n  property_assets,\n  non_property_assets\nFROM reporting.rpt_household_net_worth \nWHERE period_end_date < date_trunc('month', $__timeTo()::timestamp)\nORDER BY transaction_year DESC, transaction_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Assets & Liabilities",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Net worth progression over time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "net_worth"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Net Worth"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rolling_3m_avg_net_worth"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "3-Month Average"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  to_date(budget_year_month || '-01', 'YYYY-MM-DD') as time,\n  net_worth,\n  rolling_3m_avg_net_worth\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month BETWEEN TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM') AND TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\nORDER BY transaction_year, transaction_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Net Worth Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Assets and liabilities breakdown over time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_assets"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Assets"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_liabilities"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Liabilities"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "liquid_assets"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Liquid Assets"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "property_assets"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Property Assets"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#DAA520",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "non_property_assets"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Other Assets"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2E8B57",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  to_date(budget_year_month || '-01', 'YYYY-MM-DD') as time,\n  total_assets,\n  total_liabilities,\n  liquid_assets,\n  property_assets,\n  non_property_assets\nFROM reporting.rpt_household_net_worth \nWHERE period_end_date < date_trunc('month', $__timeTo()::timestamp)\nORDER BY transaction_year, transaction_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Assets & Liabilities Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Month-over-month changes and financial ratios",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_net_worth_change"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MoM Net Worth Change"
+              },
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -5000
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_net_worth_change_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MoM % Change"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "debt_to_asset_ratio"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Debt-to-Asset Ratio"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 0.5
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.8
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "growth_classification"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Growth Classification"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  mom_net_worth_change,\n  mom_net_worth_change_percent,\n  debt_to_asset_ratio,\n  growth_classification\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY transaction_year DESC, transaction_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Net Worth Changes & Ratios",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Year-to-date and annual progress metrics",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ytd_net_worth_change"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "YTD Net Worth Change"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -10000
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "yoy_net_worth_change_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "YoY % Change"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "monthly_mortgage_principal_reduction"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Mortgage Principal Reduction"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "estimated_months_expenses_covered"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Months Expenses Covered"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  ytd_net_worth_change,\n  yoy_net_worth_change_percent,\n  monthly_mortgage_principal_reduction,\n  estimated_months_expenses_covered\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY transaction_year DESC, transaction_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Annual Progress & Security",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Asset allocation trends broken down by account type over time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 34
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  to_date(budget_year_month || '-01', 'YYYY-MM-DD') as time,\n  property_assets,\n  liquid_assets,\n  (total_assets - property_assets - liquid_assets) as other_assets\nFROM reporting.rpt_household_net_worth\nWHERE period_end_date < date_trunc('month', $__timeTo()::timestamp)\nORDER BY transaction_year, transaction_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Asset Allocation Trends by Type",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Net worth change drivers showing which account movements contributed most to monthly changes",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "account_change_pct"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 34
+      },
+      "id": 10,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Change"
+          }
+        ]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+                    "rawSql": "WITH account_balances AS (\n  SELECT \n    ft.transaction_year,\n    ft.transaction_month,\n    ft.account_key,\n    da.account_name,\n    da.account_type,\n    da.is_liability,\n    make_date(ft.transaction_year::int, ft.transaction_month::int, 1) AS period_start,\n    MAX(ft.account_balance) AS end_of_month_balance\n  FROM reporting.fct_transactions ft\n  LEFT JOIN reporting.dim_accounts da\n    ON ft.account_key = da.account_key\n  WHERE make_date(ft.transaction_year::int, ft.transaction_month::int, 1) >= date_trunc('month', $__timeFrom()::timestamp)::date\n    AND make_date(ft.transaction_year::int, ft.transaction_month::int, 1) < date_trunc('month', $__timeTo()::timestamp)::date\n  GROUP BY ft.transaction_year, ft.transaction_month, ft.account_key, da.account_name, da.account_type, da.is_liability\n),\naccount_changes AS (\n  SELECT\n    b.account_name,\n    b.account_type,\n    b.is_liability,\n    b.period_start,\n    (b.end_of_month_balance - LAG(b.end_of_month_balance) OVER (PARTITION BY b.account_key ORDER BY b.period_start)) as monthly_change\n  FROM account_balances b\n),\nselected_period AS (\n  SELECT MAX(period_start) AS period_start\n  FROM account_changes\n  WHERE period_start < date_trunc('month', $__timeTo()::timestamp)::date\n)\nSELECT\n  account_name as \"Account\",\n  account_type as \"Type\",\n  CASE WHEN is_liability THEN 'Liability' ELSE 'Asset' END as \"Category\",\n  ROUND(CAST(ABS(monthly_change) as numeric), 2) as \"Change\",\n  CASE\n    WHEN monthly_change > 0 AND is_liability THEN 'Increase (Worse)'\n    WHEN monthly_change < 0 AND is_liability THEN 'Decrease (Better)'\n    WHEN monthly_change > 0 AND NOT is_liability THEN 'Increase (Better)'\n    WHEN monthly_change < 0 AND NOT is_liability THEN 'Decrease (Worse)'\n    ELSE 'Stable'\n  END as \"Impact\"\nFROM account_changes\nCROSS JOIN selected_period sp\nWHERE account_changes.period_start = sp.period_start\n  AND ABS(monthly_change) > 100\nORDER BY ABS(monthly_change) DESC\nLIMIT 10;",
+          "refId": "A"
+        }
+      ],
+      "title": "Net Worth Change Drivers (Top Account Movements)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Financial advice and wealth milestone tracking",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "id": 8,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  financial_advice as \"Financial Advice\",\n  wealth_milestone as \"Wealth Milestone\",\n  annual_progress_assessment as \"Annual Progress\",\n  net_worth_trend_direction as \"Trend Direction\"\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY transaction_year DESC, transaction_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Financial Advice & Milestones",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Asset allocation percentages and deviation from target allocation",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "percent"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Liquid Assets"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Property Assets"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#DAA520",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Other Assets"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2E8B57",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 49
+      },
+      "id": 102,
+      "options": {
+        "legend": {
+          "calcs": [
+            "value"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  to_date(budget_year_month || '-01', 'YYYY-MM-DD') as time,\n  liquid_asset_allocation_pct as \"Liquid Assets\",\n  property_asset_allocation_pct as \"Property Assets\",\n  other_asset_allocation_pct as \"Other Assets\"\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month BETWEEN TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM') AND TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\nORDER BY transaction_year, transaction_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Asset Allocation Breakdown Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Asset allocation drift from target allocation (60% liquid, 35% property, 5% other)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.2
+              },
+              {
+                "color": "orange",
+                "value": 0.4
+              },
+              {
+                "color": "red",
+                "value": 0.6
+              }
+            ]
+          },
+          "unit": "percentunit",
+          "min": -1,
+          "max": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "liquid_allocation_drift"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Liquid Drift"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "property_allocation_drift"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Property Drift"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#DAA520",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "other_allocation_drift"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Other Drift"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2E8B57",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_allocation_drift_score"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Drift Score"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 0.2
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.4
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.6
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 49
+      },
+      "id": 103,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  liquid_allocation_drift,\n  property_allocation_drift,\n  other_allocation_drift,\n  total_allocation_drift_score\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY transaction_year DESC, transaction_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Allocation Drift from Target",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Net worth change drivers - asset and liability deltas",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": -5000
+              },
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_assets_change"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Assets Change (MoM)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_liabilities_change"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Liabilities Change (MoM)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_net_worth_change"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Net Worth Change (MoM)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 57
+      },
+      "id": 104,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  mom_assets_change,\n  mom_liabilities_change,\n  mom_net_worth_change\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY transaction_year DESC, transaction_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Net Worth Change Drivers (Current Month)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Net worth change drivers over time showing asset and liability impacts",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_assets_change"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Assets Change"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_liabilities_change"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Liabilities Change"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 57
+      },
+      "id": 105,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  to_date(budget_year_month || '-01', 'YYYY-MM-DD') as time,\n  mom_assets_change,\n  mom_liabilities_change\nFROM reporting.rpt_household_net_worth \nWHERE budget_year_month BETWEEN TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM') AND TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\nORDER BY transaction_year, transaction_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Net Worth Change Drivers Over Time",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "net-worth",
+    "household",
+    "assets",
+    "liabilities",
+    "personal-finance",
+    "dashboard",
+    "time_control_rollout:tranche_a",
+    "time_control_archetype:historical_windowed"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1M/M",
+    "to": "now/M"
+  },
+  "timepicker": {
+    "hidden": false,
+    "quick_ranges": [
+      {
+        "from": "now-1M/M",
+        "to": "now/M",
+        "display": "Last complete month"
+      },
+      {
+        "from": "now/y",
+        "to": "now",
+        "display": "Year to date"
+      },
+      {
+        "from": "now-12M/M",
+        "to": "now/M",
+        "display": "Trailing 12 months"
+      }
+    ]
+  },
+  "timezone": "",
+  "title": "04 - Household Net Worth Analysis",
+  "uid": "household_net_worth",
+  "version": 1,
+  "weekStart": ""
+}

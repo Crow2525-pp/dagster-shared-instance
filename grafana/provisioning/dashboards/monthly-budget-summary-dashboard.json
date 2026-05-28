@@ -1,0 +1,2334 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 00 - Financial Control",
+      "type": "link",
+      "url": "/d/financial-review-command-center?orgId=1&${__url_time_range}"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "text",
+        "uid": "-- Text --"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 18,
+        "h": 5
+      },
+      "id": 100,
+      "options": {
+        "content": "## Review flow\n\nUse the closed-month summary first, then pace, then adjustment tables.\nThis dashboard should read left to right without jumping sections.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "Dashboard Instructions",
+      "description": "overflow-policy:allow-scroll",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Data recency for the current dashboard context.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "id": 101,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH available_months AS (\n  SELECT budget_year_month,\n         to_date(budget_year_month || '-01', 'YYYY-MM-DD') AS month_date\n  FROM reporting.rpt_monthly_budget_summary\n  WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n),\nlatest_period AS (\n  SELECT MAX(month_date) AS month_date\n  FROM available_months\n)\nSELECT\n  to_char((SELECT month_date FROM latest_period), 'Mon YYYY') AS \"Data Through\",\n  to_char(MAX(report_generated_at), 'YYYY-MM-DD HH24:MI') AS \"Last Refresh\"\nFROM reporting.rpt_monthly_budget_summary\nWHERE to_date(budget_year_month || '-01', 'YYYY-MM-DD') = (SELECT month_date FROM latest_period);",
+          "refId": "A"
+        }
+      ],
+      "title": "Data Freshness",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "MOST RECENT COMPLETE MONTH (August 2025): Income vs expenses data excludes current incomplete month for accurate quarterly review",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_income"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Income"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Expenses"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "net_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Net Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -1000
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  total_income,\n  total_expenses,\n  net_cash_flow\nFROM reporting.rpt_monthly_budget_summary \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY budget_year DESC, budget_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Complete Month Summary",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Savings rate and expense ratio for last complete month (scaled 0-100%, negatives allowed)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 1,
+          "min": -1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "expense_ratio_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Expense Ratio"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 95
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      },
+      "id": 2,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  savings_rate_percent,\n  expense_ratio_percent\nFROM reporting.rpt_monthly_budget_summary \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY budget_year DESC, budget_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Savings Rate & Expense Ratio",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Monthly income and expense trends",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_income"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Income"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Expenses"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rolling_3m_avg_income"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "3-Month Avg Income"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rolling_3m_avg_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "3-Month Avg Expenses"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 24,
+        "h": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  to_date(budget_year_month || '-01', 'YYYY-MM-DD') as time,\n  total_income,\n  total_expenses,\n  rolling_3m_avg_income,\n  rolling_3m_avg_expenses\nFROM reporting.rpt_monthly_budget_summary \nWHERE budget_year_month < TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\nORDER BY budget_year, budget_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Income vs Expenses Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Breakdown of expenses by major categories",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mortgage_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Mortgage"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "household_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Household"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "food_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Food & Drink"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "family_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Family & Kids"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 12,
+        "h": 6
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  mortgage_expenses,\n  household_expenses,\n  food_expenses,\n  family_expenses\nFROM reporting.rpt_monthly_budget_summary \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY budget_year DESC, budget_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Complete Month Expense Categories",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Transaction volume and activity metrics",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_transactions"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Transactions"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "income_transaction_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Income Transactions"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "expense_transaction_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Expense Transactions"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_expense_amount"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg Expense Amount"
+              },
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 12,
+        "h": 6
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  total_transactions,\n  income_transaction_count,\n  expense_transaction_count,\n  avg_expense_amount\nFROM reporting.rpt_monthly_budget_summary \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY budget_year DESC, budget_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Transaction Activity",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Year-to-date financial progression",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ytd_income"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "YTD Income"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ytd_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "YTD Expenses"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ytd_net_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "YTD Net Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -5000
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 12,
+        "h": 8
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  ytd_income,\n  ytd_expenses,\n  ytd_net_cash_flow\nFROM reporting.rpt_monthly_budget_summary \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY budget_year DESC, budget_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Year-to-Date Summary",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Monthly net cash flow progression through the year",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "net_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Net Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 35,
+        "w": 12,
+        "h": 8
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  to_date(budget_year_month || '-01', 'YYYY-MM-DD') as time,\n  net_cash_flow\nFROM reporting.rpt_monthly_budget_summary \nWHERE budget_year_month < TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\nORDER BY budget_year, budget_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Monthly Net Cash Flow",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Current month pace tracker - daily spend target vs actual burn rate",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "daily_expense_target"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Daily Target"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "actual_daily_burn_rate"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Daily Actual"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 100
+                    },
+                    {
+                      "color": "red",
+                      "value": 150
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mtd_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Month-to-Date"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pace_status"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Pace Status"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "value"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Above pace": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "On pace": {
+                        "color": "green",
+                        "index": 1
+                      },
+                      "Below pace": {
+                        "color": "blue",
+                        "index": 2
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 24,
+        "h": 8
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  daily_expense_target,\n  actual_daily_burn_rate,\n  mtd_expenses,\n  current_day_of_month,\n  days_remaining,\n  pace_status,\n  ROUND(pace_vs_target_ratio, 2) as pace_ratio,\n  ROUND(projected_month_end_expenses, 2) as projected_end_expenses,\n  ROUND(mtd_variance_from_target, 2) as mtd_variance\nFROM reporting.rpt_budget_cockpit_pace_tracker;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Month Pace Tracker",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Fixed vs Discretionary spending split with variance analysis for last complete month",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fixed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Discretionary"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_assessment"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Variance"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 51,
+        "w": 12,
+        "h": 8
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_month AS (\n  SELECT MAX(budget_year_month) AS budget_year_month\n  FROM reporting.rpt_budget_cockpit_fixed_vs_discretionary\n  WHERE budget_year_month < TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n),\nbase AS (\n  SELECT\n    spending_type AS \"Type\",\n    ROUND(amount, 2) AS \"Amount\",\n    total_transactions AS \"Transactions\",\n    ROUND(avg_transaction_size, 2) AS \"Avg Size\",\n    ROUND(pct_of_total_spending, 1) AS \"% of Total\",\n    ROUND(rolling_3m_avg, 2) AS \"3m Avg\",\n    ROUND(variance_from_historical_avg, 2) AS \"Variance $\",\n    variance_assessment AS \"Assessment\"\n  FROM reporting.rpt_budget_cockpit_fixed_vs_discretionary\n  WHERE budget_year_month = (SELECT budget_year_month FROM latest_month)\n  ORDER BY CASE WHEN spending_type = 'Fixed' THEN 0 ELSE 1 END, amount DESC\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  'No spending mix data' AS \"Type\",\n  0::numeric AS \"Amount\",\n  0::int AS \"Transactions\",\n  0::numeric AS \"Avg Size\",\n  0::numeric AS \"% of Total\",\n  0::numeric AS \"3m Avg\",\n  0::numeric AS \"Variance $\",\n  'N/A' AS \"Assessment\"\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Fixed vs Discretionary Spending",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Detailed monthly budget breakdown table",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "net_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -1000
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 59,
+        "w": 12,
+        "h": 8
+      },
+      "id": 8,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  budget_year_month as \"Month\",\n  total_income as \"Income\",\n  total_expenses as \"Expenses\",\n  net_cash_flow as \"Net Cash Flow\",\n  ROUND(savings_rate_percent, 1) as \"Savings Rate %\",\n  ROUND(expense_ratio_percent, 1) as \"Expense Ratio %\",\n  total_transactions as \"Transactions\"\nFROM reporting.rpt_monthly_budget_summary \nWHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM')\n  AND budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY budget_year DESC, budget_month DESC \nLIMIT 12;",
+          "refId": "A"
+        }
+      ],
+      "title": "Monthly Budget History",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Budget targets vs actual spending with variance deltas for income and expenses",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_income"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Actual Income"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "target_income"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Target Income (3m avg)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Actual Expenses"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "target_expenses"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Target Expenses (3m avg)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 24,
+        "h": 8
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  total_income,\n  target_income,\n  ROUND(income_variance_delta, 2) as income_variance_delta,\n  income_variance_pct,\n  total_expenses,\n  target_expenses,\n  ROUND(expense_variance_delta, 2) as expense_variance_delta,\n  expense_variance_pct,\n  expense_status\nFROM reporting.rpt_budget_variance_summary \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\nORDER BY budget_year DESC, budget_month DESC \nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Budget vs Actual (Last Complete Month)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Heatmap showing top spending categories with over/under budget status",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "budget_status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Over Budget": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "On Budget": {
+                        "color": "green",
+                        "index": 1
+                      },
+                      "Under Budget": {
+                        "color": "blue",
+                        "index": 2
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_pct"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 59,
+        "w": 12,
+        "h": 8
+      },
+      "id": 11,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  category_name,\n  category_expenses,\n  target_expenses,\n  variance_delta,\n  variance_pct,\n  budget_status,\n  transaction_count\nFROM reporting.rpt_category_budget_heatmap \nWHERE budget_year_month = (\n  SELECT MAX(budget_year_month) FROM reporting.rpt_category_budget_heatmap\n  WHERE to_date(budget_year_month || '-01', 'YYYY-MM-DD') < date_trunc('month', $__timeTo()::timestamp)\n)\nORDER BY spending_rank ASC;",
+          "refId": "A"
+        }
+      ],
+      "title": "Category Budget Heatmap (Top 10)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Suggested budget adjustments for next month based on historical patterns",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "adjustment_priority"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Critical": {
+                        "color": "dark-red",
+                        "index": 0
+                      },
+                      "High": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "Medium": {
+                        "color": "yellow",
+                        "index": 2
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "potential_monthly_savings"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 51,
+        "w": 12,
+        "h": 8
+      },
+      "id": 13,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  adjustment_priority,\n  suggestion_text,\n  recommended_action,\n  current_savings_rate_pct,\n  potential_monthly_savings\nFROM reporting.rpt_budget_adjustment_suggestions \nORDER BY \n  CASE adjustment_priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 ELSE 3 END,\n  potential_monthly_savings DESC\nLIMIT 5;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Suggested Budget Adjustments",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Month-over-month expense variance drivers: categories with >10% change and >$100 absolute variance",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "category"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "current_month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prior_month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_dollars"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_percent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 67,
+        "w": 12,
+        "h": 10
+      },
+      "id": 102,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_two_months AS (\n  SELECT budget_year_month, ROW_NUMBER() OVER (ORDER BY budget_year_month DESC) AS rn\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM')\n    AND budget_year_month <= TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n  GROUP BY budget_year_month\n  ORDER BY budget_year_month DESC\n  LIMIT 2\n),\ncurrent_month_data AS (\n  SELECT level_1_category, SUM(monthly_spending) AS amount\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month = (SELECT budget_year_month FROM latest_two_months WHERE rn = 1)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n    AND monthly_spending > 0\n  GROUP BY level_1_category\n),\nprior_month_data AS (\n  SELECT level_1_category, SUM(monthly_spending) AS amount\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month = (SELECT budget_year_month FROM latest_two_months WHERE rn = 2)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n    AND monthly_spending > 0\n  GROUP BY level_1_category\n),\nbase AS (\n  SELECT\n    c.level_1_category AS category,\n    c.amount AS current_month,\n    COALESCE(p.amount, 0) AS prior_month,\n    (c.amount - COALESCE(p.amount, 0)) AS variance_dollars,\n    CASE\n      WHEN COALESCE(p.amount, 0) = 0 THEN 100.0\n      ELSE ROUND((c.amount - COALESCE(p.amount, 0)) / NULLIF(p.amount, 0) * 100, 1)\n    END AS variance_percent\n  FROM current_month_data c\n  LEFT JOIN prior_month_data p ON c.level_1_category = p.level_1_category\n  WHERE ABS(c.amount - COALESCE(p.amount, 0)) >= 100\n    AND ABS(\n      CASE\n        WHEN COALESCE(p.amount, 0) = 0 THEN 100.0\n        ELSE (c.amount - COALESCE(p.amount, 0)) / NULLIF(p.amount, 0) * 100\n      END\n    ) >= 10\n  ORDER BY ABS(c.amount - COALESCE(p.amount, 0)) DESC\n  LIMIT 10\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  'No variance categories' AS category,\n  0::numeric AS current_month,\n  0::numeric AS prior_month,\n  0::numeric AS variance_dollars,\n  0::numeric AS variance_percent\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "MoM Budget Variance Drivers (>10% & >$100)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Top 5 transactions for the highest variance category MoM",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "transaction_date"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "merchant"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "amount"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 67,
+        "w": 12,
+        "h": 10
+      },
+      "id": 103,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_two_months AS (\n  SELECT budget_year_month, ROW_NUMBER() OVER (ORDER BY budget_year_month DESC) AS rn\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM')\n    AND budget_year_month <= TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n  GROUP BY budget_year_month\n  ORDER BY budget_year_month DESC\n  LIMIT 2\n),\nvariance_categories AS (\n  SELECT\n    level_1_category,\n    ABS(\n      SUM(\n        CASE\n          WHEN budget_year_month = (SELECT budget_year_month FROM latest_two_months WHERE rn = 1)\n            THEN monthly_spending\n          ELSE -COALESCE(monthly_spending, 0)\n        END\n      )\n    ) AS variance\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month IN (SELECT budget_year_month FROM latest_two_months)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n  GROUP BY level_1_category\n  ORDER BY variance DESC\n  LIMIT 1\n),\nbase AS (\n  SELECT\n    ft.transaction_date::date AS transaction_date,\n    COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), ''), 'Unknown') AS merchant,\n    ft.transaction_amount_abs AS amount,\n    COALESCE(dc.level_1_category, 'Uncategorized') AS category\n  FROM reporting.fct_transactions ft\n  LEFT JOIN reporting.dim_categories dc ON ft.category_key = dc.category_key\n  WHERE COALESCE(dc.level_1_category, 'Uncategorized') = (SELECT level_1_category FROM variance_categories)\n    AND DATE_TRUNC('month', ft.transaction_date) = (\n      SELECT TO_DATE(budget_year_month || '-01', 'YYYY-MM-DD') FROM latest_two_months WHERE rn = 1\n    )\n    AND ft.transaction_amount < 0\n    AND NOT COALESCE(ft.is_internal_transfer, FALSE)\n  ORDER BY ft.transaction_amount_abs DESC\n  LIMIT 5\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeTo()::timestamp)::date AS transaction_date,\n  'No transactions for top variance category' AS merchant,\n  0::numeric AS amount,\n  'N/A' AS category\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 5 Transactions - Highest Variance Category",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Year-over-year expense variance drivers: categories with >10% change and >$100 absolute variance",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "category"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "current_year"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prior_year"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_dollars"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_percent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 77,
+        "w": 12,
+        "h": 10
+      },
+      "id": 104,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_month AS (\n  SELECT MAX(budget_year_month) AS budget_year_month\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp) - INTERVAL '1 year', 'YYYY-MM')\n    AND budget_year_month <= TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n),\nprior_year_month AS (\n  SELECT TO_CHAR(TO_DATE(budget_year_month || '-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY-MM') AS budget_year_month\n  FROM latest_month\n),\ncurrent_year_month AS (\n  SELECT level_1_category, SUM(monthly_spending) AS amount\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month = (SELECT budget_year_month FROM latest_month)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n    AND monthly_spending > 0\n  GROUP BY level_1_category\n),\nprior_year_month_data AS (\n  SELECT level_1_category, SUM(monthly_spending) AS amount\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month = (SELECT budget_year_month FROM prior_year_month)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n    AND monthly_spending > 0\n  GROUP BY level_1_category\n),\nbase AS (\n  SELECT\n    c.level_1_category AS category,\n    c.amount AS current_year,\n    COALESCE(p.amount, 0) AS prior_year,\n    (c.amount - COALESCE(p.amount, 0)) AS variance_dollars,\n    CASE\n      WHEN COALESCE(p.amount, 0) = 0 THEN 100.0\n      ELSE ROUND((c.amount - COALESCE(p.amount, 0)) / NULLIF(p.amount, 0) * 100, 1)\n    END AS variance_percent\n  FROM current_year_month c\n  LEFT JOIN prior_year_month_data p ON c.level_1_category = p.level_1_category\n  WHERE ABS(c.amount - COALESCE(p.amount, 0)) >= 100\n    AND ABS(\n      CASE\n        WHEN COALESCE(p.amount, 0) = 0 THEN 100.0\n        ELSE (c.amount - COALESCE(p.amount, 0)) / NULLIF(p.amount, 0) * 100\n      END\n    ) >= 10\n  ORDER BY ABS(c.amount - COALESCE(p.amount, 0)) DESC\n  LIMIT 10\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  'No YoY variance categories' AS category,\n  0::numeric AS current_year,\n  0::numeric AS prior_year,\n  0::numeric AS variance_dollars,\n  0::numeric AS variance_percent\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "YoY Budget Variance Drivers (>10% & >$100)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Top 5 transactions for the highest variance category YoY",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "transaction_date"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "merchant"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "amount"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 77,
+        "w": 12,
+        "h": 10
+      },
+      "id": 105,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_month AS (\n  SELECT MAX(budget_year_month) AS budget_year_month\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp) - INTERVAL '1 year', 'YYYY-MM')\n    AND budget_year_month <= TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n),\nprior_year_month AS (\n  SELECT TO_CHAR(TO_DATE(budget_year_month || '-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY-MM') AS budget_year_month\n  FROM latest_month\n),\ncomparison_months AS (\n  SELECT budget_year_month FROM latest_month\n  UNION ALL\n  SELECT budget_year_month FROM prior_year_month\n),\nvariance_categories AS (\n  SELECT\n    level_1_category,\n    ABS(\n      SUM(\n        CASE\n          WHEN budget_year_month = (SELECT budget_year_month FROM latest_month)\n            THEN monthly_spending\n          ELSE -COALESCE(monthly_spending, 0)\n        END\n      )\n    ) AS variance\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month IN (SELECT budget_year_month FROM comparison_months)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n  GROUP BY level_1_category\n  ORDER BY variance DESC\n  LIMIT 1\n),\nbase AS (\n  SELECT\n    ft.transaction_date::date AS transaction_date,\n    COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), ''), 'Unknown') AS merchant,\n    ft.transaction_amount_abs AS amount,\n    COALESCE(dc.level_1_category, 'Uncategorized') AS category\n  FROM reporting.fct_transactions ft\n  LEFT JOIN reporting.dim_categories dc ON ft.category_key = dc.category_key\n  WHERE COALESCE(dc.level_1_category, 'Uncategorized') = (SELECT level_1_category FROM variance_categories)\n    AND DATE_TRUNC('month', ft.transaction_date) = (\n      SELECT TO_DATE(budget_year_month || '-01', 'YYYY-MM-DD') FROM latest_month\n    )\n    AND ft.transaction_amount < 0\n    AND NOT COALESCE(ft.is_internal_transfer, FALSE)\n  ORDER BY ft.transaction_amount_abs DESC\n  LIMIT 5\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeTo()::timestamp)::date AS transaction_date,\n  'No transactions for top YoY variance category' AS merchant,\n  0::numeric AS amount,\n  'N/A' AS category\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 5 Transactions - Highest Variance Category (YoY)",
+      "type": "table"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "budget",
+    "monthly",
+    "summary",
+    "income",
+    "expenses",
+    "personal-finance",
+    "dashboard",
+    "time_control_rollout:tranche_a",
+    "time_control_archetype:historical_windowed"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1M/M",
+    "to": "now/M"
+  },
+  "timepicker": {
+    "hidden": false,
+    "quick_ranges": [
+      {
+        "from": "now-1M/M",
+        "to": "now/M",
+        "display": "Last complete month"
+      },
+      {
+        "from": "now/y",
+        "to": "now",
+        "display": "Year to date"
+      },
+      {
+        "from": "now-12M/M",
+        "to": "now/M",
+        "display": "Trailing 12 months"
+      }
+    ]
+  },
+  "timezone": "",
+  "title": "03 - Monthly Budget Summary",
+  "uid": "monthly_budget_summary",
+  "version": 1,
+  "weekStart": ""
+}

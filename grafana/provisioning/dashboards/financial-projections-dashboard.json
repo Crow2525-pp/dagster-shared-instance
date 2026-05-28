@@ -1,0 +1,1132 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 00 - Financial Control",
+      "type": "link",
+      "url": "/d/financial-review-command-center?orgId=1&${__url_time_range}"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "text"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 22,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "options": {
+        "content": "# 12 - Financial Projections\n\n**What This Dashboard Shows:** Forward-looking financial modeling with scenario planning to help you make informed decisions about work and life changes. Compare full-time vs part-time work scenarios.\n\n**Key Metrics Explained:**\n\u2022 **Monthly Projections:** Predicted income, expenses, and net flow based on historical patterns and scenario assumptions\n\u2022 **Cumulative Net Flow:** Running total showing wealth accumulation over 12 months under different scenarios\n\u2022 **Opportunity Cost Analysis:** Financial impact of choosing part-time over full-time work (pie chart shows annual and cumulative costs)\n\u2022 **Historical vs Projected:** Compare your actual financial performance with forward-looking projections\n\n**How to Use:** Use scenario planning to evaluate major life decisions like career changes, family planning, or lifestyle adjustments. The opportunity cost analysis helps quantify the financial trade-offs of different choices. Positive net flows indicate sustainable financial paths.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "Dashboard Instructions",
+      "description": "Intentionally scrollable documentation panel. overflow-policy:allow-scroll",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "projected_net_flow"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH base AS (\n  SELECT\n    projection_date AS time,\n    projected_monthly_income,\n    projected_monthly_expenses,\n    projected_net_flow\n  FROM reporting.projection_data\n  WHERE scenario = '$scenario'\n    AND projection_date BETWEEN date_trunc('month', $__timeFrom()::timestamp) AND date_trunc('month', $__timeTo()::timestamp)\n  ORDER BY projection_date\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeFrom()::timestamp) AS time,\n  0::numeric AS projected_monthly_income,\n  0::numeric AS projected_monthly_expenses,\n  0::numeric AS projected_net_flow\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY time;\n",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Monthly Projections: Income, Expenses & Net Flow",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "full_time"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "part_time"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH base AS (\n  SELECT\n    projection_date AS time,\n    scenario,\n    projected_monthly_income AS value\n  FROM reporting.projection_data\n  WHERE projection_date BETWEEN date_trunc('month', $__timeFrom()::timestamp) AND date_trunc('month', $__timeTo()::timestamp)\n  ORDER BY projection_date, scenario\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeFrom()::timestamp) AS time,\n  'no_data' AS scenario,\n  0::numeric AS value\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY time, scenario;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Income Comparison: Full-time vs Part-time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH base AS (\n  SELECT\n    projection_date AS time,\n    scenario,\n    cumulative_net_flow AS value\n  FROM reporting.projection_data\n  WHERE projection_date BETWEEN date_trunc('month', $__timeFrom()::timestamp) AND date_trunc('month', $__timeTo()::timestamp)\n  ORDER BY projection_date, scenario\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeFrom()::timestamp) AS time,\n  'no_data' AS scenario,\n  0::numeric AS value\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY time, scenario;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Cumulative Net Flow by Scenario",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 0.1
+              }
+            ]
+          },
+          "unit": "percentunit",
+          "min": -1,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "id": 4,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  scenario,\n  AVG(projected_savings_rate) as avg_savings_rate\nFROM reporting.projection_data \nGROUP BY scenario\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Projected Savings Rate by Scenario",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH historical AS (\n  SELECT \n    DATE_TRUNC('month', transaction_date) as time,\n    SUM(CASE WHEN transaction_amount > 0 THEN transaction_amount ELSE 0 END) as actual_income,\n    SUM(CASE WHEN transaction_amount < 0 THEN ABS(transaction_amount) ELSE 0 END) as actual_expenses,\n    SUM(transaction_amount) as actual_net_flow,\n    'Historical' as data_type\n  FROM reporting.fct_transactions \n  WHERE transaction_date >= '2022-01-01' AND transaction_date < date_trunc('month', $__timeTo()::timestamp)\n  GROUP BY DATE_TRUNC('month', transaction_date)\n),\nprojected AS (\n  SELECT \n    projection_date as time,\n    projected_monthly_income as actual_income,\n    projected_monthly_expenses as actual_expenses,\n    projected_net_flow as actual_net_flow,\n    CONCAT('Projected (', scenario, ')') as data_type\n  FROM reporting.projection_data\n)\nSELECT \n  time,\n  data_type,\n  actual_net_flow as value\nFROM historical\nUNION ALL\nSELECT \n  time,\n  data_type,\n  actual_net_flow as value\nFROM projected\nORDER BY time, data_type",
+          "refId": "A"
+        }
+      ],
+      "title": "YoY Comparison: Historical vs Projected Net Flow",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 46
+      },
+      "id": 6,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value"
+        ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH opportunity_cost AS (\n  SELECT \n    ft.projected_monthly_income - pt.projected_monthly_income as monthly_opportunity_cost,\n    ft.cumulative_net_flow - pt.cumulative_net_flow as cumulative_opportunity_cost\n  FROM reporting.projection_data ft\n  JOIN reporting.projection_data pt ON ft.projection_month = pt.projection_month\n  WHERE ft.scenario = 'full_time' AND pt.scenario = 'part_time'\n  AND ft.projection_month = 12\n)\nSELECT \n  'Annual Income Opportunity Cost' as metric,\n  monthly_opportunity_cost * 12 as value\nFROM opportunity_cost\nUNION ALL\nSELECT \n  'Cumulative Opportunity Cost (12 months)' as metric,\n  cumulative_opportunity_cost as value\nFROM opportunity_cost\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Part-time Work Opportunity Cost",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 46
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  scenario,\n  MAX(cumulative_net_flow) as twelve_month_savings\nFROM reporting.projection_data \nGROUP BY scenario\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "12-Month Projected Savings by Scenario",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "text"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 22,
+        "w": 12,
+        "x": 0,
+        "y": 54
+      },
+      "id": 8,
+      "options": {
+        "content": "## Scenario Assumptions\n\n**Full-Time Scenario:**\n- Work Factor: 100% (full-time employment)\n- Monthly QBE Income: $3,800\n- Monthly Education Income: $420 (30% of months active)\n- Partner Income: $2,900\n- Annual Bonus: $12,000\n- Annual Tax Refund: $2,000\n- Income Growth Rate: 5% annually\n- Expense Growth Rate: 4% annually\n\n**Part-Time Scenario:**\n- Work Factor: 60% (3 days per week)\n- Monthly QBE Income: $2,280 (60% of full-time)\n- Monthly Education Income: $420 (30% of months active)\n- Partner Income: $2,900\n- Annual Bonus: $7,000 (reduced for part-time)\n- Annual Tax Refund: $2,000\n- Income Growth Rate: 3% annually\n- Expense Growth Rate: 4% annually\n\n**General Assumptions:**\n- Inflation Rate: 2% annually\n- Based on 24-month historical baseline\n- Expense projections use confidence intervals",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "Scenario Assumptions Documentation",
+      "description": "Intentionally scrollable documentation panel. overflow-policy:allow-scroll",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Base Projection"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Conservative (-10%)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Optimistic (+10%)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 54
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH base AS (\n  SELECT\n    projection_date AS time,\n    projected_net_flow AS \"Base Projection\",\n    worst_case_net_flow AS \"Conservative (-10%)\",\n    best_case_net_flow AS \"Optimistic (+10%)\"\n  FROM reporting.fct_projection_sensitivity\n  WHERE scenario = '$scenario'\n    AND projection_date BETWEEN date_trunc('month', $__timeFrom()::timestamp) AND date_trunc('month', $__timeTo()::timestamp)\n  ORDER BY projection_date\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeFrom()::timestamp) AS time,\n  0::numeric AS \"Base Projection\",\n  0::numeric AS \"Conservative (-10%)\",\n  0::numeric AS \"Optimistic (+10%)\"\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY time;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Sensitivity Analysis: Income/Expense Range",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Income Gap"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Expense Gap"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 76
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH base AS (\n  SELECT\n    projection_date AS time,\n    income_gap AS \"Income Gap (Projected - Actual)\",\n    expense_gap AS \"Expense Gap (Projected - Actual)\",\n    net_flow_gap AS \"Net Flow Gap\"\n  FROM reporting.fct_projection_sensitivity\n  WHERE scenario = '$scenario'\n    AND prev_year_actual_income IS NOT NULL\n    AND projection_date BETWEEN date_trunc('month', $__timeFrom()::timestamp) AND date_trunc('month', $__timeTo()::timestamp)\n  ORDER BY projection_date\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeFrom()::timestamp) AS time,\n  0::numeric AS \"Income Gap (Projected - Actual)\",\n  0::numeric AS \"Expense Gap (Projected - Actual)\",\n  0::numeric AS \"Net Flow Gap\"\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY time;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Projection Calibration: Gaps vs Historical (Same Month Last Year)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 84
+      },
+      "id": 11,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  'Optimistic Case' as metric,\n  best_case_net_flow * 12 as value\nFROM reporting.fct_projection_sensitivity \nWHERE scenario = '$scenario'\nAND projection_month = 12\nUNION ALL\nSELECT \n  'Base Case' as metric,\n  projected_net_flow * 12 as value\nFROM reporting.fct_projection_sensitivity \nWHERE scenario = '$scenario'\nAND projection_month = 12\nUNION ALL\nSELECT \n  'Conservative Case' as metric,\n  worst_case_net_flow * 12 as value\nFROM reporting.fct_projection_sensitivity \nWHERE scenario = '$scenario'\nAND projection_month = 12\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Scenario Range: Annual Net Flow Impact (Best/Base/Worst Case)",
+      "type": "piechart"
+    }
+  ],
+  "refresh": "",
+  "revision": 1,
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "projections",
+    "finance",
+    "scenarios",
+    "time_control_rollout:tranche_b",
+    "time_control_archetype:forward_looking",
+    "time_control:forward_looking_exception",
+    "time_control_reason:future_projection_context"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "full_time",
+          "value": "full_time"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Work Scenario",
+        "multi": false,
+        "name": "scenario",
+        "options": [
+          {
+            "selected": true,
+            "text": "full_time",
+            "value": "full_time"
+          },
+          {
+            "selected": false,
+            "text": "part_time",
+            "value": "part_time"
+          }
+        ],
+        "query": "full_time,part_time",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now",
+    "to": "now+5y"
+  },
+  "timepicker": {
+    "hidden": false,
+    "quick_ranges": [
+      {
+        "from": "now",
+        "to": "now+12M",
+        "display": "Next 12 months"
+      },
+      {
+        "from": "now",
+        "to": "now+5y",
+        "display": "Next 5 years"
+      }
+    ]
+  },
+  "timezone": "",
+  "title": "12 - Financial Projections",
+  "uid": "financial_projections",
+  "version": 1,
+  "weekStart": ""
+}

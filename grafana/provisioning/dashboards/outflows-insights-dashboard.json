@@ -1,0 +1,1889 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 00 - Financial Control",
+      "type": "link",
+      "url": "/d/financial-review-command-center?orgId=1&${__url_time_range}"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "text",
+        "uid": "-- Text --"
+      },
+      "gridPos": {
+        "h": 63,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "options": {
+        "content": "# 08 - Outflows Insights\n\n**What This Dashboard Shows:** Deep analysis of spending patterns with categorization and trend detection for optimization opportunities.\n\n**Key Metrics Explained:**\n* **Monthly Outflow Trends:** Track spending with month-over-month and year-over-year changes\n* **Category Analysis:** Detailed breakdown across all spending areas\n* **Large Transactions:** Identify unusual high-value purchases\n* **Uncategorized Items:** Should be <10% for accurate reporting - these distort analysis\n\n**How to Use:** Focus on largest categories first. Investigate unexpected increases. Categorize unknown transactions for better insights.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "Dashboard Instructions",
+      "description": "Intentionally scrollable documentation panel. overflow-policy:allow-scroll",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dashboard_status"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 63
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    dashboard_status,\n    alert_level,\n    primary_insight,\n    recommendation,\n    trend_direction,\n    budget_status\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date DESC\nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Outflows Status",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 67
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    period_date as time,\n    total_outflows\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date BETWEEN date_trunc('month', $__timeFrom()::timestamp) AND date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date;",
+          "refId": "A"
+        }
+      ],
+      "title": "Monthly Outflows Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 67
+      },
+      "id": 3,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    mom_outflows_change_pct\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date DESC\nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Month-over-Month Change %",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 15
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 67
+      },
+      "id": 4,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    yoy_outflows_change_pct\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date DESC\nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Year-over-Year Change %",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            }
+          },
+          "mappings": [],
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 75
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "displayLabels": [
+          "name",
+          "value"
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_period AS (\n  SELECT MAX(period_date) AS period_date\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\n),\nbase AS (\n  SELECT 'Food & Dining' AS category, COALESCE(food_dining, 0) AS amount\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date = (SELECT period_date FROM latest_period)\n  UNION ALL\n  SELECT 'Housing & Mortgage', COALESCE(housing_mortgage, 0)\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date = (SELECT period_date FROM latest_period)\n  UNION ALL\n  SELECT 'Utilities', COALESCE(household_utilities, 0)\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date = (SELECT period_date FROM latest_period)\n  UNION ALL\n  SELECT 'Transportation', COALESCE(transportation, 0)\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date = (SELECT period_date FROM latest_period)\n  UNION ALL\n  SELECT 'Shopping & Retail', COALESCE(shopping_retail, 0)\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date = (SELECT period_date FROM latest_period)\n  UNION ALL\n  SELECT 'Uncategorized', COALESCE(uncategorized_amount, 0)\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date = (SELECT period_date FROM latest_period)\n)\nSELECT * FROM base\nUNION ALL\nSELECT 'No outflow data' AS category, 0::numeric AS amount\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY amount DESC, category;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Month Category Breakdown",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 75
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    'Food & Dining' as category, \n    COALESCE(mom_food_change_pct, 0) as change_pct\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date = (SELECT MAX(period_date) FROM reporting.rpt_outflows_insights_dashboard)\nUNION ALL\nSELECT \n    'Housing & Mortgage' as category, \n    COALESCE(mom_housing_change_pct, 0) as change_pct\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date = (SELECT MAX(period_date) FROM reporting.rpt_outflows_insights_dashboard)\nUNION ALL\nSELECT \n    'Utilities' as category, \n    COALESCE(mom_utilities_change_pct, 0) as change_pct\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date = (SELECT MAX(period_date) FROM reporting.rpt_outflows_insights_dashboard)\nUNION ALL\nSELECT \n    'Uncategorized' as category, \n    COALESCE(mom_uncategorized_change_pct, 0) as change_pct\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date = (SELECT MAX(period_date) FROM reporting.rpt_outflows_insights_dashboard)\nAND period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY change_pct DESC;",
+          "refId": "A"
+        }
+      ],
+      "title": "Month-over-Month Category Changes",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 83
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH base AS (\n  SELECT\n    period_date AS time,\n    food_dining AS \"Food & Dining\",\n    housing_mortgage AS \"Housing & Mortgage\",\n    household_utilities AS \"Utilities\",\n    transportation AS \"Transportation\",\n    shopping_retail AS \"Shopping & Retail\",\n    uncategorized_amount AS \"Uncategorized\"\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date BETWEEN date_trunc('month', $__timeFrom()::timestamp) AND date_trunc('month', $__timeTo()::timestamp)\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeFrom()::timestamp)::date AS time,\n  0::numeric AS \"Food & Dining\",\n  0::numeric AS \"Housing & Mortgage\",\n  0::numeric AS \"Utilities\",\n  0::numeric AS \"Transportation\",\n  0::numeric AS \"Shopping & Retail\",\n  0::numeric AS \"Uncategorized\"\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY time;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Category Trends Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "large_transactions_pct"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "recurring_expenses_pct"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "large_transactions"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_transaction_size"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "median_transaction_size"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 91
+      },
+      "id": 8,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    total_transactions,\n    avg_transaction_size,\n    median_transaction_size,\n    large_transaction_count,\n    large_transactions,\n    large_transactions_pct,\n    recurring_expenses_pct,\n    spending_pattern,\n    spending_insight\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date DESC\nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Transaction Analysis - Current Month",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 15
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 99
+      },
+      "id": 9,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n    uncategorized_pct\nFROM reporting.rpt_outflows_insights_dashboard\nWHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date DESC\nLIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Uncategorized Transactions %",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 18,
+        "x": 6,
+        "y": 99
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH base AS (\n  SELECT\n    period_date AS time,\n    uncategorized_amount AS \"Uncategorized Amount\"\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date BETWEEN date_trunc('month', $__timeFrom()::timestamp) AND date_trunc('month', $__timeTo()::timestamp)\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeFrom()::timestamp)::date AS time,\n  0::numeric AS \"Uncategorized Amount\"\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY time;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Uncategorized Spending Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "period_start"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Month"
+              },
+              {
+                "id": "unit",
+                "value": "time: YYYY-MM"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "account_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Account"
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_amount_abs"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "displayName",
+                "value": "Amount"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "txn_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Count"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sample_memo"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Example Transaction"
+              },
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "suggested_category"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Suggested Category"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "confidence"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "displayName",
+                "value": "Confidence"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 107
+      },
+      "id": 11,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  hvu.period_start,\n  hvu.account_name,\n  hvu.total_amount_abs,\n  hvu.txn_count,\n  hvu.sample_memo AS sample_memo,\n  hvu.suggested_category,\n  hvu.suggested_subcategory,\n  hvu.confidence\nFROM reporting.viz_high_value_uncategorized_by_period hvu\nWHERE hvu.period_type = 'month'\n  AND hvu.period_start >= date_trunc('month', $__timeFrom()::timestamp)\nORDER BY hvu.period_start DESC, hvu.total_amount_abs DESC\nLIMIT 50;",
+          "refId": "A"
+        }
+      ],
+      "title": "Uncategorized Transactions >$20",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "month"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Month"
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "account_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Account"
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "amount"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "displayName",
+                "value": "Amount"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Count"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "example_transaction"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Example Transaction"
+              },
+              {
+                "id": "custom.width",
+                "value": 320
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "suggested_category"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Suggested Category"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "suggested_subcategory"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Suggested Subcategory"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "confidence"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "displayName",
+                "value": "Confidence"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 115
+      },
+      "id": 12,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH data AS (\n  SELECT month, account_name, amount, count, example_transaction, suggested_category, suggested_subcategory, confidence\n  FROM reporting.viz_uncategorized_missing_example_top5\n  ORDER BY amount DESC\n)\nSELECT * FROM data\nUNION ALL\nSELECT 'N/A', 'None', 0, 0, 'No uncategorized transactions'::text, 'N/A', 'N/A', 0\nWHERE NOT EXISTS (SELECT 1 FROM data);\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 5 Uncategorized Without Example (Monthly)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Quick view of data-quality blockers for the latest complete month.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          },
+          "links": [
+            {
+              "title": "View Outflows Reconciliation Exceptions",
+              "url": "/d/outflows_reconciliation?orgId=1&${__url_time_range}",
+              "targetBlank": true
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "detail"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 123,
+        "w": 12,
+        "h": 6
+      },
+      "id": 905,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH available_months AS (\n  SELECT budget_year_month,\n         to_date(budget_year_month || '-01', 'YYYY-MM-DD') AS month_date\n  FROM reporting.rpt_monthly_budget_summary\n  WHERE budget_year_month >= TO_CHAR($__timeFrom()::date, 'YYYY-MM')\n    AND budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n),\nlatest_period AS (\n  SELECT MAX(month_date) AS month_date\n  FROM available_months\n),\nperiod_bounds AS (\n  SELECT month_date,\n         month_date AS month_start,\n         (month_date + INTERVAL '1 month' - INTERVAL '1 day')::date AS month_end\n  FROM latest_period\n),\nstale_accounts AS (\n  SELECT COUNT(*) AS stale_accounts\n  FROM reporting.dim_accounts_enhanced\n  WHERE account_last_transaction_date < (SELECT month_end FROM period_bounds) - INTERVAL '45 days'\n),\ntransfer_pairs AS (\n  SELECT\n    transaction_date::date AS txn_date,\n    transaction_amount_abs AS amount_abs,\n    SUM(CASE WHEN transaction_amount < 0 THEN 1 ELSE 0 END) AS out_count,\n    SUM(CASE WHEN transaction_amount > 0 THEN 1 ELSE 0 END) AS in_count\n  FROM reporting.fct_transactions_enhanced\n  WHERE COALESCE(is_internal_transfer, FALSE)\n    AND transaction_date >= (SELECT month_start FROM period_bounds)\n    AND transaction_date <= (SELECT month_end FROM period_bounds)\n  GROUP BY 1,2\n),\nunmatched_transfers AS (\n  SELECT COALESCE(SUM(ABS(out_count - in_count)), 0) AS unmatched_count\n  FROM transfer_pairs\n),\nuncategorized AS (\n  SELECT uncategorized_pct\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date = (SELECT month_date FROM period_bounds)\n)\nSELECT 'Stale accounts (45d+ no activity)' AS metric,\n       COALESCE((SELECT stale_accounts FROM stale_accounts), 0)::text AS value,\n       'Accounts without recent transactions' AS detail\nUNION ALL\nSELECT 'Unmatched internal transfers',\n       COALESCE((SELECT unmatched_count FROM unmatched_transfers), 0)::text,\n       'Proxy count based on paired in/out amounts'\nUNION ALL\nSELECT 'Uncategorized spend %',\n       CONCAT(ROUND(COALESCE((SELECT uncategorized_pct FROM uncategorized), 0), 1), '%'),\n       'Share of outflows currently uncategorized';",
+          "refId": "A"
+        }
+      ],
+      "title": "Data Quality Callouts",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Top uncategorized merchants (latest complete month).",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total Spend"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last Seen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time: YYYY-MM-DD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 123,
+        "w": 12,
+        "h": 6
+      },
+      "id": 906,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH uncategorized AS (\n  SELECT\n    SPLIT_PART(\n      COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), ''), 'Unknown'),\n      ' - ',\n      1\n    ) AS merchant,\n    COUNT(*) AS txn_count,\n    SUM(ABS(ft.transaction_amount)) AS total_spend,\n    MAX(ft.transaction_date) AS last_seen\n  FROM reporting.fct_transactions ft\n  LEFT JOIN reporting.dim_categories dc ON ft.category_key = dc.category_key\n  WHERE COALESCE(dc.level_1_category, 'Uncategorized') = 'Uncategorized'\n    AND ft.transaction_amount < 0\n    AND NOT COALESCE(ft.is_internal_transfer, FALSE)\n    AND COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), '')) IS NOT NULL\n  GROUP BY SPLIT_PART(\n    COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), ''), 'Unknown'),\n    ' - ',\n    1\n  )\n  HAVING COUNT(*) >= 2 OR SUM(ABS(ft.transaction_amount)) >= 100\n),\ndata AS (\n  SELECT merchant, txn_count, ROUND(total_spend, 2) AS total_spend, last_seen\n  FROM uncategorized\n  ORDER BY total_spend DESC\n  LIMIT 10\n)\nSELECT\n  merchant AS \"Merchant\",\n  txn_count AS \"Txn Count\",\n  total_spend AS \"Total Spend\",\n  last_seen AS \"Last Seen\"\nFROM data\nUNION ALL\nSELECT 'None', 0, 0, NULL::date\nWHERE NOT EXISTS (SELECT 1 FROM data);\n-- time scope: $__timeTo() (latest uncategorized merchant ranking)\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Uncategorized Merchants",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Month-over-month variance drivers for outflows: categories with >10% change and >$100 absolute variance",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "category"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "current_month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prior_month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_dollars"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_percent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 129
+      },
+      "id": 13,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_two_months AS (\n  SELECT budget_year_month, ROW_NUMBER() OVER (ORDER BY budget_year_month DESC) AS rn\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM')\n    AND budget_year_month <= TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n  GROUP BY budget_year_month\n  ORDER BY budget_year_month DESC\n  LIMIT 2\n),\ncurrent_month_data AS (\n  SELECT level_1_category, SUM(monthly_spending) AS amount\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month = (SELECT budget_year_month FROM latest_two_months WHERE rn = 1)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n    AND monthly_spending > 0\n  GROUP BY level_1_category\n),\nprior_month_data AS (\n  SELECT level_1_category, SUM(monthly_spending) AS amount\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month = (SELECT budget_year_month FROM latest_two_months WHERE rn = 2)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n    AND monthly_spending > 0\n  GROUP BY level_1_category\n),\nbase AS (\n  SELECT\n    c.level_1_category AS category,\n    c.amount AS current_month,\n    COALESCE(p.amount, 0) AS prior_month,\n    (c.amount - COALESCE(p.amount, 0)) AS variance_dollars,\n    CASE\n      WHEN COALESCE(p.amount, 0) = 0 THEN 100.0\n      ELSE ROUND((c.amount - COALESCE(p.amount, 0)) / NULLIF(p.amount, 0) * 100, 1)\n    END AS variance_percent\n  FROM current_month_data c\n  LEFT JOIN prior_month_data p ON c.level_1_category = p.level_1_category\n  WHERE ABS(c.amount - COALESCE(p.amount, 0)) >= 100\n    AND ABS(\n      CASE\n        WHEN COALESCE(p.amount, 0) = 0 THEN 100.0\n        ELSE (c.amount - COALESCE(p.amount, 0)) / NULLIF(p.amount, 0) * 100\n      END\n    ) >= 10\n  ORDER BY ABS(c.amount - COALESCE(p.amount, 0)) DESC\n  LIMIT 10\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  'No variance categories' AS category,\n  0::numeric AS current_month,\n  0::numeric AS prior_month,\n  0::numeric AS variance_dollars,\n  0::numeric AS variance_percent\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "MoM Variance Drivers - Outflows (>10% & >$100)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Top 5 transactions for the highest variance category MoM",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "transaction_date"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "merchant"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "amount"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 129
+      },
+      "id": 14,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_two_months AS (\n  SELECT budget_year_month, ROW_NUMBER() OVER (ORDER BY budget_year_month DESC) AS rn\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM')\n    AND budget_year_month <= TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n  GROUP BY budget_year_month\n  ORDER BY budget_year_month DESC\n  LIMIT 2\n),\nvariance_categories AS (\n  SELECT\n    level_1_category,\n    ABS(\n      SUM(\n        CASE\n          WHEN budget_year_month = (SELECT budget_year_month FROM latest_two_months WHERE rn = 1)\n            THEN monthly_spending\n          ELSE -COALESCE(monthly_spending, 0)\n        END\n      )\n    ) AS variance\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month IN (SELECT budget_year_month FROM latest_two_months)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n  GROUP BY level_1_category\n  ORDER BY variance DESC\n  LIMIT 1\n),\nbase AS (\n  SELECT\n    ft.transaction_date::date AS transaction_date,\n    COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), ''), 'Unknown') AS merchant,\n    ft.transaction_amount_abs AS amount,\n    COALESCE(dc.level_1_category, 'Uncategorized') AS category\n  FROM reporting.fct_transactions ft\n  LEFT JOIN reporting.dim_categories dc ON ft.category_key = dc.category_key\n  WHERE COALESCE(dc.level_1_category, 'Uncategorized') = (SELECT level_1_category FROM variance_categories)\n    AND DATE_TRUNC('month', ft.transaction_date) = (\n      SELECT TO_DATE(budget_year_month || '-01', 'YYYY-MM-DD') FROM latest_two_months WHERE rn = 1\n    )\n    AND ft.transaction_amount < 0\n    AND NOT COALESCE(ft.is_internal_transfer, FALSE)\n  ORDER BY ft.transaction_amount_abs DESC\n  LIMIT 5\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeTo()::timestamp)::date AS transaction_date,\n  'No transactions for top variance category' AS merchant,\n  0::numeric AS amount,\n  'N/A' AS category\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 5 Transactions - Highest Variance Category",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Year-over-year variance drivers for outflows: categories with >10% change and >$100 absolute variance",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "category"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "current_year"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prior_year"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_dollars"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "variance_percent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 139
+      },
+      "id": 15,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_month AS (\n  SELECT MAX(budget_year_month) AS budget_year_month\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp) - INTERVAL '1 year', 'YYYY-MM')\n    AND budget_year_month <= TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n),\nprior_year_month AS (\n  SELECT TO_CHAR(TO_DATE(budget_year_month || '-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY-MM') AS budget_year_month\n  FROM latest_month\n),\ncurrent_year_month AS (\n  SELECT level_1_category, SUM(monthly_spending) AS amount\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month = (SELECT budget_year_month FROM latest_month)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n    AND monthly_spending > 0\n  GROUP BY level_1_category\n),\nprior_year_month_data AS (\n  SELECT level_1_category, SUM(monthly_spending) AS amount\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month = (SELECT budget_year_month FROM prior_year_month)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n    AND monthly_spending > 0\n  GROUP BY level_1_category\n),\nbase AS (\n  SELECT\n    c.level_1_category AS category,\n    c.amount AS current_year,\n    COALESCE(p.amount, 0) AS prior_year,\n    (c.amount - COALESCE(p.amount, 0)) AS variance_dollars,\n    CASE\n      WHEN COALESCE(p.amount, 0) = 0 THEN 100.0\n      ELSE ROUND((c.amount - COALESCE(p.amount, 0)) / NULLIF(p.amount, 0) * 100, 1)\n    END AS variance_percent\n  FROM current_year_month c\n  LEFT JOIN prior_year_month_data p ON c.level_1_category = p.level_1_category\n  WHERE ABS(c.amount - COALESCE(p.amount, 0)) >= 100\n    AND ABS(\n      CASE\n        WHEN COALESCE(p.amount, 0) = 0 THEN 100.0\n        ELSE (c.amount - COALESCE(p.amount, 0)) / NULLIF(p.amount, 0) * 100\n      END\n    ) >= 10\n  ORDER BY ABS(c.amount - COALESCE(p.amount, 0)) DESC\n  LIMIT 10\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  'No YoY variance categories' AS category,\n  0::numeric AS current_year,\n  0::numeric AS prior_year,\n  0::numeric AS variance_dollars,\n  0::numeric AS variance_percent\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "YoY Variance Drivers - Outflows (>10% & >$100)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Top 5 transactions for the highest variance category YoY",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "transaction_date"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "merchant"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "amount"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 139
+      },
+      "id": 16,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_month AS (\n  SELECT MAX(budget_year_month) AS budget_year_month\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp) - INTERVAL '1 year', 'YYYY-MM')\n    AND budget_year_month <= TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM')\n),\nprior_year_month AS (\n  SELECT TO_CHAR(TO_DATE(budget_year_month || '-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY-MM') AS budget_year_month\n  FROM latest_month\n),\ncomparison_months AS (\n  SELECT budget_year_month FROM latest_month\n  UNION ALL\n  SELECT budget_year_month FROM prior_year_month\n),\nvariance_categories AS (\n  SELECT\n    level_1_category,\n    ABS(\n      SUM(\n        CASE\n          WHEN budget_year_month = (SELECT budget_year_month FROM latest_month)\n            THEN monthly_spending\n          ELSE -COALESCE(monthly_spending, 0)\n        END\n      )\n    ) AS variance\n  FROM reporting.rpt_category_spending_trends\n  WHERE budget_year_month IN (SELECT budget_year_month FROM comparison_months)\n    AND level_1_category NOT IN ('Bank Transaction', 'Salary')\n  GROUP BY level_1_category\n  ORDER BY variance DESC\n  LIMIT 1\n),\nbase AS (\n  SELECT\n    ft.transaction_date::date AS transaction_date,\n    COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), ''), 'Unknown') AS merchant,\n    ft.transaction_amount_abs AS amount,\n    COALESCE(dc.level_1_category, 'Uncategorized') AS category\n  FROM reporting.fct_transactions ft\n  LEFT JOIN reporting.dim_categories dc ON ft.category_key = dc.category_key\n  WHERE COALESCE(dc.level_1_category, 'Uncategorized') = (SELECT level_1_category FROM variance_categories)\n    AND DATE_TRUNC('month', ft.transaction_date) = (\n      SELECT TO_DATE(budget_year_month || '-01', 'YYYY-MM-DD') FROM latest_month\n    )\n    AND ft.transaction_amount < 0\n    AND NOT COALESCE(ft.is_internal_transfer, FALSE)\n  ORDER BY ft.transaction_amount_abs DESC\n  LIMIT 5\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeTo()::timestamp)::date AS transaction_date,\n  'No transactions for top YoY variance category' AS merchant,\n  0::numeric AS amount,\n  'N/A' AS category\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 5 Transactions - Highest Variance Category (YoY)",
+      "type": "table"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 38,
+  "tags": [
+    "outflows",
+    "insights",
+    "analysis",
+    "time_control_rollout:tranche_b",
+    "time_control_archetype:historical_windowed"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1M/M",
+    "to": "now/M"
+  },
+  "timepicker": {
+    "hidden": false,
+    "quick_ranges": [
+      {
+        "from": "now-1M/M",
+        "to": "now/M",
+        "display": "Last complete month"
+      },
+      {
+        "from": "now/y",
+        "to": "now",
+        "display": "Year to date"
+      },
+      {
+        "from": "now-12M/M",
+        "to": "now/M",
+        "display": "Trailing 12 months"
+      }
+    ]
+  },
+  "timezone": "Australia/Melbourne",
+  "title": "08 - Outflows Insights",
+  "uid": "outflows_insights",
+  "version": 0,
+  "weekStart": ""
+}

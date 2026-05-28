@@ -40,8 +40,6 @@ services:
       KEEP_AUTO_ADD_MIN_CONFIDENCE: ${KEEP_AUTO_ADD_MIN_CONFIDENCE}
       KEEP_DELETE_ON_ADD: ${KEEP_DELETE_ON_ADD}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      USE_NIX_DEVSHELL: ${USE_NIX_DEVSHELL:-0}
-      PLAYWRIGHT_HEADED: ${PLAYWRIGHT_HEADED:-0}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/io_manager_storage:/tmp/io_manager_storage
@@ -89,10 +87,8 @@ services:
       GOOGLE_KEEP_EMAIL: ${GOOGLE_KEEP_EMAIL}
       COLES_STATE_PATH: ${COLES_STATE_PATH}
       KEEP_AUTO_ADD_MIN_CONFIDENCE: ${KEEP_AUTO_ADD_MIN_CONFIDENCE}
-      KEEP_DELETE_ON_ADD: ${KEEP_DELETE_ON_ADD}
+      KEEP_DELETE_ON_ADD: ${KEEP_DELETE_ON_AM}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      USE_NIX_DEVSHELL: ${USE_NIX_DEVSHELL:-0}
-      PLAYWRIGHT_HEADED: ${PLAYWRIGHT_HEADED:-0}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/io_manager_storage:/tmp/io_manager_storage
@@ -107,16 +103,28 @@ services:
       - .env
 
   dagster-postgres:
-    image: postgres:16
+    build:
+      context: ./postgres
+    shm_size: 128mb
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_ADMIN_USER}
       POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
       POSTGRES_DB: ${DAGSTER_POSTGRES_DB}
+      DAGSTER_POSTGRES_USER: ${DAGSTER_POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${DAGSTER_POSTGRES_PASSWORD}
+      GRAFANA_USER: ${GRAFANA_USER}
+      GRAFANA_PASSWORD: ${GRAFANA_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/dagster/
     healthcheck:
       test:
         - CMD-SHELL
-        - pg_isready -U "${POSTGRES_ADMIN_USER}" -d "${DAGSTER_POSTGRES_DB}"
+        - >
+          PGPASSWORD="$$POSTGRES_PASSWORD" psql -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -tAc
+          "SELECT CASE WHEN
+          EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$$DAGSTER_POSTGRES_USER')
+          AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$$GRAFANA_USER')
+          THEN 1 ELSE 0 END" | grep -q 1
       interval: 5s
       timeout: 5s
       retries: 20
@@ -128,11 +136,33 @@ services:
     env_file:
       - .env
 
+  grafana:
+    image: grafana/grafana:12.2.0-ubuntu
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_BIND_HOST:-127.0.0.1}:${GRAFANA_HOST_PORT:-3001}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GRAFANA_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_PLUGINS_PREINSTALL=motherduck-duckdb-datasource@https://github.com/motherduckdb/grafana-duckdb-datasource/releases/download/v0.4.0/motherduck-duckdb-datasource-0.4.0.zip
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ${PERSONAL_FINANCE_DUCKDB_DIR:?PERSONAL_FINANCE_DUCKDB_DIR not set in .env}:/var/lib/grafana/duckdb
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - dagster
+    depends_on:
+      dagster-postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+
 volumes:
   dagster-postgres-data:
   dagster-compute-logs:
+  grafana-storage:
 
 networks:
   dagster:
     name: ${DAGSTER_NETWORK:-dagster_shared_network}
-

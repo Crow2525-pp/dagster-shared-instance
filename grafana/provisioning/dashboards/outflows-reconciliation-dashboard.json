@@ -1,0 +1,839 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 00 - Financial Control",
+      "type": "link",
+      "url": "/d/financial-review-command-center?orgId=1&${__url_time_range}"
+    },
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 01 - Executive Financial Overview",
+      "type": "link",
+      "url": "/d/executive_dashboard?orgId=1&${__url_time_range}"
+    },
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 09 - Transaction Analysis",
+      "type": "link",
+      "url": "/d/transaction_analysis_dashboard?orgId=1&${__url_time_range}"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "text",
+        "uid": "-- Text --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "options": {
+        "content": "### Financial Reconciliation\n\nCross-dashboard pass/fail checks (Outflows, Budget, Income/Expense, Cash Flow, Executive, Net Worth). Aim for all PASS. Use tables to triage discrepancies.",
+        "mode": "markdown"
+      },
+      "title": "Overview",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 4
+      },
+      "id": 200,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^failed$/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT failed FROM reporting.rpt_financials_reconciliation_summary WHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date DESC LIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed Checks (All Domains)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "id": 201,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^status$/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT status FROM reporting.rpt_financials_reconciliation_summary WHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date DESC LIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Overall Status (All Domains)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "id": 202,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest AS (\n  SELECT MAX(period_date) AS p\n  FROM reporting.rpt_financials_reconciliation_tests\n  WHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\n),\nbase AS (\n  SELECT\n    domain,\n    COUNT(*) FILTER (WHERE pass) AS passed,\n    COUNT(*) FILTER (WHERE NOT pass) AS failed,\n    COUNT(*) AS total\n  FROM reporting.rpt_financials_reconciliation_tests\n  WHERE period_date = (SELECT p FROM latest)\n  GROUP BY domain\n)\nSELECT * FROM base\nUNION ALL\nSELECT 'No reconciliation data' AS domain, 0::bigint AS passed, 0::bigint AS failed, 0::bigint AS total\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY domain;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Domain Summary (Latest)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 203,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest AS (SELECT MAX(period_date) AS p FROM reporting.rpt_financials_reconciliation_tests) SELECT period_date, domain, test_name, left_value, right_value, delta, pass, notes FROM reporting.rpt_financials_reconciliation_tests WHERE period_date = (SELECT p FROM latest) AND period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY domain, test_name;",
+          "refId": "A"
+        }
+      ],
+      "title": "Financial Reconciliation Checks (Latest Month)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 205,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT period_date AS time, failed FROM reporting.rpt_financials_reconciliation_summary WHERE period_date >= date_trunc('month', $__timeFrom()::timestamp) ORDER BY period_date;",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed Checks Over Time (All Domains)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 204,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT period_date, domain, test_name, left_value, right_value, delta, pass, notes FROM reporting.rpt_financials_reconciliation_tests WHERE period_date >= date_trunc('month', $__timeFrom()::timestamp) ORDER BY period_date DESC, domain, test_name;",
+          "refId": "A"
+        }
+      ],
+      "title": "All Tests",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "period_date"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time: YYYY-MM"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 210,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT period_date, status, passed, failed, total FROM reporting.rpt_outflows_reconciliation_summary WHERE period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY period_date DESC LIMIT 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Outflows Summary (Latest)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "id": 211,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest AS (SELECT MAX(period_date) AS p FROM reporting.rpt_outflows_reconciliation_tests) SELECT period_date, test_name, left_value, right_value, delta, pass, notes FROM reporting.rpt_outflows_reconciliation_tests WHERE period_date = (SELECT p FROM latest) AND period_date <= date_trunc('month', $__timeTo()::timestamp)\nORDER BY test_name;",
+          "refId": "A"
+        }
+      ],
+      "title": "Outflows Checks (Latest Month)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "month"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "account_name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "amount"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "confidence"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 212,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH data AS (\n  SELECT month, account_name, amount, count, example_transaction, suggested_category, suggested_subcategory, confidence\n  FROM reporting.viz_uncategorized_missing_example_top5\n  ORDER BY amount DESC\n)\nSELECT * FROM data\nUNION ALL\nSELECT 'N/A', 'None', 0, 0, 'No uncategorized transactions'::text, 'N/A', 'N/A', 0\nWHERE NOT EXISTS (SELECT 1 FROM data);\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 5 Uncategorized Without Example (High Value)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "text",
+        "uid": "-- Text --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "id": 300,
+      "options": {
+        "content": "## Actionable Fix List\nPrioritized fixes sorted by financial impact. Click through affected_dashboard to navigate and address issues.",
+        "mode": "markdown"
+      },
+      "title": "Fix List Section",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "FAILED",
+                  "color": "red"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "financial_impact"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "id": 301,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH data AS (\n  SELECT priority_rank, domain, test_name, affected_dashboard, recommended_action, financial_impact, status\n  FROM reporting.rpt_reconciliation_fix_order\n)\nSELECT * FROM data\nUNION ALL\nSELECT 0, 'Healthy', 'No reconciliation fixes required', 'outflows-reconciliation', 'All reconciliation checks are currently passing', 0, 'PASS'\nWHERE NOT EXISTS (SELECT 1 FROM data)\nORDER BY priority_rank;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Fix Order (Priority by Impact)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "text",
+        "uid": "-- Text --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 64
+      },
+      "id": 302,
+      "options": {
+        "content": "## Data Quality Blockers\nTop blockers preventing accurate reporting across dashboards.",
+        "mode": "markdown"
+      },
+      "title": "Blockers Section",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_financial_impact"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 68
+      },
+      "id": 303,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH data AS (\n  SELECT blocker_rank, blocker_name, severity, failure_count, total_financial_impact, impact_description, affected_dashboards, remediation_steps\n  FROM reporting.rpt_data_quality_blockers\n)\nSELECT * FROM data\nUNION ALL\nSELECT 0, 'No active blockers', 'LOW', 0, 0, 'All monitored reconciliation blockers are currently resolved', 'outflows-reconciliation', 'Continue monitoring future pipeline runs'\nWHERE NOT EXISTS (SELECT 1 FROM data)\nORDER BY blocker_rank;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Data Quality Blockers",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "text",
+        "uid": "-- Text --"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 74
+      },
+      "id": 304,
+      "options": {
+        "content": "## Check Details\nDetailed failed checks with links to affected dashboards.",
+        "mode": "markdown"
+      },
+      "title": "Details Section",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "mappings": []
+        }
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 78
+      },
+      "id": 305,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH data AS (\n  SELECT domain, test_name, affected_entity_type, entity_category, delta, notes, recommended_dashboard, status\n  FROM reporting.rpt_reconciliation_check_details\n  WHERE NOT pass\n)\nSELECT * FROM data\nUNION ALL\nSELECT 'Healthy', 'No failed reconciliation checks', 'Summary', 'All Domains', 0, 'No failed checks in the latest reconciliation snapshot', 'outflows-reconciliation', 'PASS'\nWHERE NOT EXISTS (SELECT 1 FROM data)\nORDER BY domain, test_name;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed Checks Detail (Links to Dashboards)",
+      "type": "table"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 38,
+  "tags": [
+    "outflows",
+    "reconciliation",
+    "quality",
+    "time_control_rollout:tranche_a",
+    "time_control_archetype:historical_windowed"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1M/M",
+    "to": "now/M"
+  },
+  "timezone": "Australia/Melbourne",
+  "title": "10 - Financial Reconciliation",
+  "uid": "outflows_reconciliation",
+  "version": 2,
+  "weekStart": "",
+  "timepicker": {
+    "hidden": false,
+    "quick_ranges": [
+      {
+        "from": "now-1M/M",
+        "to": "now/M",
+        "display": "Last complete month"
+      },
+      {
+        "from": "now/y",
+        "to": "now",
+        "display": "Year to date"
+      },
+      {
+        "from": "now-12M/M",
+        "to": "now/M",
+        "display": "Trailing 12 months"
+      }
+    ]
+  }
+}

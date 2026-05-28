@@ -1,0 +1,233 @@
+# Grafana Dashboards Provisioning
+
+This folder is mounted into Grafana so dashboards auto-load from versioned JSON, not from manual UI exports.
+
+- `docker-compose.yml` mounts `./platform/grafana/provisioning` to `/etc/grafana/provisioning`.
+- That provisioning includes the default PostgreSQL datasource plus the optional DuckDB datasource used for local UI checks.
+- Grafana provider (`dashboards.yml`) scans all `*.json` here every ~10 seconds; placing a file makes it available without additional config.
+
+## Workflow
+1) Edit JSON in this directory (keep UIDs stable so Grafana overwrites the same dashboards).
+2) For quick sync without restarting Grafana, run `python scripts/push_grafana_dashboards.py` (uses Grafana API and defaults to all JSON files).
+3) Verify panels with the pre-commit dashboard checklist in `CLAUDE.md`.
+4) Use the Playwright MCP server to validate dashboards quickly:
+   - `mcp__playwright__browser_navigate(url="http://localhost:3001")`
+   - log in (credentials from your `.env`)
+   - `mcp__playwright__browser_take_screenshot(filename="screenshots/dashboard-review.png", fullPage=true)`
+   - look for “No data”, datasource errors, or console errors; attach the screenshot to `activity.md` for the task.
+
+## Dashboard QA Harness
+
+Use the quality gate script to run lint, live Grafana API checks, and optional Playwright screenshots in one command.
+
+## Visual Overflow Policy
+
+Text panels that are intentionally scrollable reference/docs panels must declare
+`overflow-policy:allow-scroll` in the panel `description` metadata. The
+Playwright overflow checker reports those panels as approved scrollable
+overflows and does not fail the gate on them.
+
+Use this only for documentation/reference panels such as `Dashboard
+Instructions`, `Dashboard Guide`, `How to Read This Dashboard`, and `KPI
+Definitions`. Do not use it to hide operational panels that should be resized.
+
+### Local usage
+
+```bash
+# lint + live checks (default thresholds: 0 for failures/warnings)
+python scripts/dashboard_quality_gate.py --dashboards executive_dashboard category-spending-v2
+
+# include screenshot evidence (requires Playwright + GRAFANA_PASSWORD)
+python scripts/dashboard_quality_gate.py --dashboards executive_dashboard --screenshots
+
+# lint-only mode (no Grafana connectivity required)
+python scripts/dashboard_quality_gate.py --lint-only
+```
+
+Artifacts are written to `artifacts/dashboard-quality/<UTC timestamp>/` and include:
+- checker raw output (`lint-only.*`, `live-checks.*`)
+- normalized findings (`findings.normalized.json`)
+- markdown report (`report.md`)
+- screenshots (`screenshots/*.png`) when `--screenshots` is enabled
+
+### CI usage
+
+```bash
+python scripts/dashboard_quality_gate.py \
+  --base-url "$GRAFANA_URL" \
+  --dashboards executive_dashboard cash_flow_analysis \
+  --max-failing-panels 0 \
+  --max-layout-warnings 5 \
+  --max-static-warnings 5 \
+  --max-parity-warnings 0
+```
+
+The script exits non-zero when any threshold is exceeded or static lint parse errors are detected.
+
+### Visual checks
+
+When `--screenshots` is enabled, the quality gate also performs DOM-level visual inspection on each loaded dashboard page. These checks catch rendering failures that the API cannot detect:
+
+| Check | Selector / source | Severity | What it catches |
+|---|---|---|---|
+| No data overlays | `[data-testid="data-testid Panel status message"]`, `.panel-empty` | warning | Panels showing "No data" due to column mismatches, missing time columns, or empty result sets |
+| Panel errors | `[data-testid="data-testid Panel status error"]`, `[data-testid="data-testid Panel header error icon"]` | error | Panels with query errors, datasource failures, or rendering exceptions |
+| Console errors | Browser console messages at `error` level | warning | JavaScript errors, failed API calls, or plugin issues (benign patterns like `favicon`, `grafana-usage-stats`, `api/live/ws` are excluded) |
+
+Findings appear in `findings.normalized.json` with `source: "visual"` and in the report under **Visual Check Findings**.
+
+Use `--max-visual-warnings <N>` to set the threshold (default: 0). Set a higher value when known "No data" panels are expected:
+
+```bash
+python scripts/dashboard_quality_gate.py --screenshots --max-visual-warnings 10
+```
+
+## Unit and Sign Standards
+
+These standards are enforced across all 23 dashboard files as of task-48.
+
+### Monetary values
+
+Use `"unit": "short"` for all monetary amounts. Do **not** use `currencyAUD`, `currencyUSD`, or `currencyGBP` — Grafana 12 renders these as a raw suffix (e.g. "12.8 KAUD") instead of the intended symbol.
+
+```json
+// CORRECT
+"unit": "short"
+
+// WRONG - broken in Grafana 12
+"unit": "currencyUSD"
+"unit": "currencyAUD"
+```
+
+Values display as "12.8 K", "-528 K", etc., which is clean and currency-neutral for AUD.
+
+### Ratio values (0-1 range)
+
+Use `"unit": "percentunit"` with explicit `min` and `max` bounds:
+
+```json
+"unit": "percentunit",
+"min": -1,
+"max": 1
+```
+
+The `min`/`max` are required — without them Grafana auto-scales and small ratios may appear as near-zero on gauges. If the field can never be negative (e.g. an expense ratio), use `"min": 0, "max": 1`.
+
+SQL must supply raw ratio values (e.g. `0.25` for 25%). Do **not** multiply by 100 in SQL for `percentunit` fields — this causes display errors like `-8660%`.
+
+Field naming convention: bare name (e.g. `savings_rate`) = 0-1 ratio for `percentunit`.
+
+### Percentage values (0-100 range)
+
+Use `"unit": "percent"` with explicit bounds:
+
+```json
+"unit": "percent",
+"min": -100,
+"max": 100
+```
+
+SQL must supply values already multiplied by 100 (e.g. `25.0` for 25%). If negative values are impossible, use `"min": 0, "max": 100`.
+
+Field naming convention: `_pct` suffix (e.g. `savings_rate_pct`) = 0-100 value for `percent`.
+
+### Sign convention for expenses
+
+Expenses should be displayed as **positive magnitudes** in expense-specific panels so "Expenses: 14.8 K" is shown, not "-14.8 K". Negate the value in SQL when needed:
+
+```sql
+-- If transaction_amount stores outflows as negative, negate for display:
+ABS(total_expenses) AS expenses
+```
+
+Only show negative values when displaying net cash flow or change direction.
+
+### Sign convention for liabilities
+
+Show liabilities as **positive magnitudes** in dedicated liability/debt panels. Negate only when computing net worth (`assets - liabilities`).
+
+### Before / after examples
+
+| Context | Before (broken) | After (correct) |
+|---|---|---|
+| Account balance panel | `"unit": "currencyUSD"` | `"unit": "short"` |
+| Savings rate gauge | `"unit": "percentunit"` (no min/max) | `"unit": "percentunit", "min": -1, "max": 1` |
+| Expense ratio table | `"unit": "currencyAUD"` | `"unit": "short"` |
+| MoM change gauge | `"unit": "percentunit"` (no min/max) | `"unit": "percentunit", "min": -1, "max": 1` |
+
+---
+
+## Other Conventions
+- Percent data: ratio fields (0-1) use `percentunit`; percentage fields (0-100) use `percent`; name ratio fields without `_pct`, add `_pct` suffix for 0-100 values.
+- Pie/bar/stat panels should display actual values (`displayLabels: ["name","value"]`, `reduceOptions.values: true`).
+- Timeseries, barchart, piechart, and bargauge panels must set `options.tooltip.mode` explicitly.
+- Timeseries and barchart panels should keep a visible legend; do not use `displayMode: "hidden"` for primary analytical charts.
+- Mobile dashboards are prefixed `01-..` to `06-..`; keep numbering contiguous when adding new mobile layouts.
+
+## Adding dashboards
+- Save the exported JSON directly here; no extra registration is needed because the provider watches the directory.
+- Ensure filenames are descriptive; keep `uid` unique and stable to avoid clobbering unrelated dashboards.
+- If a dashboard should not be provisioned, keep it outside this folder or rename with a non-`.json` extension.
+
+## Time Control Standard (Task 110)
+
+### Native time picker as canonical control
+
+All dashboards use the **native Grafana time picker** as the single time-control mechanism. Custom template variables (`time_window`, `dashboard_period`) have been removed.
+
+Each dashboard has `timepicker.quick_ranges` configured with presets appropriate to its archetype:
+
+| Archetype | quick_ranges presets |
+|---|---|
+| `historical_windowed` | "Last complete month", "Year to date", "Trailing 12 months" |
+| `historical_fixed_period` | "Full history" |
+| `forward_looking` | "Next 12 months", "Next 5 years" |
+| `hybrid_past_future` | "Last 12 months + next 12 months", "Full history + projections" |
+| `atemporal_no_time_component` | Time picker **hidden** |
+
+### SQL time macro requirement
+
+Every panel SQL query must reference `$__timeFrom()`, `$__timeTo()`, or `$__timeFilter()` for time filtering. This ensures the native time picker controls data displayed in all panels.
+
+### Deprecated variables
+
+Do **not** add `time_window` or `dashboard_period` template variables to any dashboard. These have been removed and are enforced by the policy checker.
+
+## Cross-Dashboard Navigation Links
+
+### Time-range context preservation
+
+All cross-dashboard links propagate the current time range using Grafana's `${__url_time_range}` variable. This resolves to `from=<epoch_ms>&to=<epoch_ms>` at render time.
+
+Every provisioned dashboard except `00 - Financial Review Command Center` must include `View in 00 - Financial Control` as the first top-level link so users can always return to the review starting point.
+
+**URL pattern:**
+```
+/d/<uid>?orgId=1&${__url_time_range}
+```
+
+Do **not** pass `var-time_window` or `var-dashboard_period` in links — these variables no longer exist.
+
+### Dashboards with cross-dashboard links
+
+| Source dashboard | Destination dashboard | Variables passed |
+|---|---|---|
+| `executive-dashboard` | `financial-review-command-center`, `cash_flow_analysis`, `savings_analysis`, `category-spending-v2`, `transaction_analysis_dashboard`, `outflows_reconciliation` | `${__url_time_range}` |
+| `cash-flow-analysis-dashboard` | `financial-review-command-center`, `executive_dashboard`, `category-spending-v2`, `transaction_analysis_dashboard`, `outflows_reconciliation` | `${__url_time_range}` |
+| `monthly-budget-summary-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `household-net-worth-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `savings-analysis-dashboard` | `financial-review-command-center`, `executive_dashboard`, `household_net_worth`, `category-spending-v2` | `${__url_time_range}` |
+| `account-performance-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `expense-performance-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `outflows-reconciliation-dashboard` | `financial-review-command-center`, `executive_dashboard`, `transaction_analysis_dashboard` | `${__url_time_range}` |
+| `outflows-insights-dashboard` | `financial-review-command-center`, `outflows_reconciliation` | `${__url_time_range}` |
+| `transaction-analysis-dashboard` | `financial-review-command-center`, `executive_dashboard`, `category-spending-v2`, `outflows_insights`, `outflows_reconciliation` | `${__url_time_range}` |
+| `category-spending-dashboard` | `financial-review-command-center`, `transaction_analysis_dashboard` | `${__url_time_range}` |
+| `financial-projections-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `year-over-year-comparison-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `four-year-financial-comparison-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `mortgage-payoff-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `grocery-spending-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+| `amazon-spending-dashboard` | `financial-review-command-center` | `${__url_time_range}` |
+
+When adding a new cross-dashboard link, always include `?orgId=1&${__url_time_range}` as a minimum.

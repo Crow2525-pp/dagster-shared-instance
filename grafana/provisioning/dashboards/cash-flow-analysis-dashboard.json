@@ -1,0 +1,2493 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 00 - Financial Control",
+      "type": "link",
+      "url": "/d/financial-review-command-center?orgId=1&${__url_time_range}"
+    },
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 01 - Executive Financial Overview",
+      "type": "link",
+      "url": "/d/executive_dashboard?orgId=1&${__url_time_range}"
+    },
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 06 - Category Spending Analysis",
+      "type": "link",
+      "url": "/d/category-spending-v2?orgId=1&${__url_time_range}"
+    },
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 09 - Transaction Analysis",
+      "type": "link",
+      "url": "/d/transaction_analysis_dashboard?orgId=1&${__url_time_range}"
+    },
+    {
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": "View in 10 - Financial Reconciliation",
+      "type": "link",
+      "url": "/d/outflows_reconciliation?orgId=1&${__url_time_range}"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "text",
+        "uid": "-- Text --"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 18,
+        "h": 5
+      },
+      "id": 100,
+      "options": {
+        "content": "## Review flow\n\nRead scorecards first, trends second, driver tables third, and forecast last.\nUse this dashboard after Executive and before category drill-down.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "Dashboard Instructions",
+      "description": "overflow-policy:allow-scroll",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Data recency for the current dashboard context.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "id": 101,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH available_months AS (\n  SELECT budget_year_month,\n         to_date(budget_year_month || '-01', 'YYYY-MM-DD') AS month_date\n  FROM reporting.rpt_cash_flow_analysis\n  WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n),\nlatest_period AS (\n  SELECT MAX(month_date) AS month_date\n  FROM available_months\n)\nSELECT\n  to_char((SELECT month_date FROM latest_period), 'Mon YYYY') AS \"Data Through\",\n  to_char(MAX(report_generated_at), 'YYYY-MM-DD HH24:MI') AS \"Last Refresh\"\nFROM reporting.rpt_cash_flow_analysis\nWHERE to_date(budget_year_month || '-01', 'YYYY-MM-DD') = (SELECT month_date FROM latest_period);",
+          "refId": "A"
+        }
+      ],
+      "title": "Data Freshness",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "3-month average cash flow efficiency score (1-100), smoothing month-to-month volatility time_control:latest_snapshot",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "from": 0,
+                "result": {
+                  "text": "Critical"
+                },
+                "to": 40
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 40,
+                "result": {
+                  "text": "Poor"
+                },
+                "to": 50
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 50,
+                "result": {
+                  "text": "Fair"
+                },
+                "to": 75
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 75,
+                "result": {
+                  "text": "Good"
+                },
+                "to": 90
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 90,
+                "result": {
+                  "text": "Excellent"
+                },
+                "to": 100
+              },
+              "type": "range"
+            }
+          ],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 6,
+        "h": 8
+      },
+      "id": 1,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH last3 AS (\n  SELECT cash_flow_efficiency_score\n  FROM reporting.rpt_cash_flow_analysis\n  WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n  ORDER BY transaction_year DESC, transaction_month DESC\n  LIMIT 3\n)\nSELECT ROUND(AVG(cash_flow_efficiency_score)) AS cash_flow_efficiency_score FROM last3;",
+          "refId": "A"
+        }
+      ],
+      "title": "Cash Flow Efficiency Score",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "3-month average status rank (1 worst .. 5 best) time_control:latest_snapshot",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "text": "Critical"
+                },
+                "2": {
+                  "text": "Poor"
+                },
+                "3": {
+                  "text": "Fair"
+                },
+                "4": {
+                  "text": "Good"
+                },
+                "5": {
+                  "text": "Excellent"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 5,
+          "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "light-green",
+                "value": 4
+              },
+              {
+                "color": "green",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 5,
+        "w": 6,
+        "h": 8
+      },
+      "id": 2,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH last3 AS (\n  SELECT cash_flow_status_rank\n  FROM reporting.rpt_cash_flow_analysis\n  WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n  ORDER BY transaction_year DESC, transaction_month DESC\n  LIMIT 3\n)\nSELECT ROUND(AVG(cash_flow_status_rank)) AS cash_flow_status_rank FROM last3;",
+          "refId": "A"
+        }
+      ],
+      "title": "Cash Flow Status Rank",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "3-month average trend rank (1 Declining, 2 Stable, 3 Improving)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "text": "Declining"
+                },
+                "2": {
+                  "text": "Stable"
+                },
+                "3": {
+                  "text": "Improving"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 3,
+          "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 6,
+        "h": 8
+      },
+      "id": 9,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH last3 AS (\n  SELECT CASE \n           WHEN cash_flow_trend = 'Declining' THEN 1\n           WHEN cash_flow_trend = 'Stable' THEN 2\n           WHEN cash_flow_trend = 'Improving' THEN 3\n           ELSE 2\n         END as trend_rank\n  FROM reporting.rpt_cash_flow_analysis\n  WHERE budget_year_month >= TO_CHAR(date_trunc('month', $__timeFrom()::timestamp), 'YYYY-MM')\n    AND budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n  ORDER BY transaction_year DESC, transaction_month DESC\n  LIMIT 3\n)\nSELECT ROUND(AVG(trend_rank)) AS trend_rank FROM last3;",
+          "refId": "A"
+        }
+      ],
+      "title": "Cash Flow Trend",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "MOST RECENT COMPLETE MONTH: Inflows, outflows, and net cash flow data excludes current incomplete month for accurate analysis. Updated with corrected categorizations.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_inflows"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Inflows"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_outflows"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Outflows"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "net_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Net Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -1000
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 5,
+        "w": 6,
+        "h": 8
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  total_inflows,\n  total_outflows,\n  net_cash_flow\nFROM reporting.rpt_cash_flow_analysis \nWHERE budget_year_month = (SELECT MAX(budget_year_month) FROM reporting.rpt_cash_flow_analysis WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM'));",
+          "refId": "A"
+        }
+      ],
+      "title": "Latest Month Cash Flow",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Monthly cash flow trends over time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "net_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Net Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rolling_3m_avg_net_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "3-Month Average"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  CONCAT(budget_year_month, '-01')::timestamp as time,\n  net_cash_flow,\n  rolling_3m_avg_net_flow\nFROM reporting.rpt_cash_flow_analysis \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n  AND budget_year_month >= TO_CHAR($__timeFrom()::date, 'YYYY-MM')\nORDER BY transaction_year, transaction_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Cash Flow Trends",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Breakdown of cash flows by operating, financing, and investing activities",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "operating_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Operating Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "financing_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Financing Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "investing_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Investing Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  CONCAT(budget_year_month, '-01')::timestamp as time,\n  operating_cash_flow,\n  financing_cash_flow,\n  investing_cash_flow\nFROM reporting.rpt_cash_flow_analysis \nWHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n  AND budget_year_month >= TO_CHAR($__timeFrom()::date, 'YYYY-MM')\nORDER BY transaction_year, transaction_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Cash Flow by Category",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Key cash flow metrics and ratios",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit",
+          "min": -1,
+          "max": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cash_flow_margin_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Cash Flow Margin"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 5
+                    },
+                    {
+                      "color": "green",
+                      "value": 15
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "outflow_to_inflow_ratio"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Outflow to Inflow Ratio"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 95
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_inflow_change_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MoM Inflow Change (Last vs Prior)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mom_outflow_change_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MoM Outflow Change (Last vs Prior)"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 6
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  cash_flow_margin_percent,\n  outflow_to_inflow_ratio,\n  mom_inflow_change_percent,\n  mom_outflow_change_percent\nFROM reporting.rpt_cash_flow_analysis \nWHERE budget_year_month = (SELECT MAX(budget_year_month) FROM reporting.rpt_cash_flow_analysis WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM'));",
+          "refId": "A"
+        }
+      ],
+      "title": "Cash Flow Metrics",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Year-to-date cash flow progression",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ytd_inflows"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "YTD Inflows"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ytd_outflows"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "YTD Outflows"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ytd_net_cash_flow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "YTD Net Cash Flow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -5000
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 6
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  ytd_inflows,\n  ytd_outflows,\n  ytd_net_cash_flow\nFROM reporting.rpt_cash_flow_analysis \nWHERE budget_year_month = (SELECT MAX(budget_year_month) FROM reporting.rpt_cash_flow_analysis WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM'));",
+          "refId": "A"
+        }
+      ],
+      "title": "Year-to-Date Cash Flow",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Month-over-month cash flow changes with summary and links to variance drivers",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Net Flow Change ($)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": -1000
+                    },
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 12,
+        "h": 6
+      },
+      "id": 301,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  latest_month as \"Latest Month\",\n  prior_month as \"Prior Month\",\n  ROUND(latest_month_net_flow, 0) as \"Latest Net Flow\",\n  ROUND(prior_month_net_flow, 0) as \"Prior Net Flow\",\n  ROUND(net_flow_change_dollars, 0) as \"Net Flow Change ($)\",\n  net_flow_change_pct as \"Change %\",\n  status_change as \"Status\",\n  change_summary as \"Summary\"\nFROM reporting.rpt_mom_cash_flow_summary;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "What Changed This Month",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Actionable cash flow recommendations linked to specific categories and top drivers",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Top Category Amount"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Primary Income"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 27,
+        "w": 12,
+        "h": 6
+      },
+      "id": 302,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  cash_flow_recommendation as \"Recommendation\",\n  recommendation_driver as \"Action Focus\",\n  top_category_1 as \"Top Category\",\n  ROUND(top_category_1_amount, 0) as \"Top Category Amount\",\n  top_category_1_flag as \"Category Status\",\n  primary_income_source as \"Primary Income\",\n  ROUND(primary_income_amount, 0) as \"Income Amount\"\nFROM reporting.rpt_recommendation_drivers;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Recommendation Drivers & Action Items",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Recurring bills projected for next month with due dates and payment priority",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Monthly Cost"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Projected Impact"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Priority"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "High": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "Medium": {
+                        "color": "yellow",
+                        "index": 1
+                      },
+                      "Low": {
+                        "color": "green",
+                        "index": 2
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 24,
+        "h": 6
+      },
+      "id": 303,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Days Until Due"
+          }
+        ]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH projected_bills AS (\n  SELECT \n    merchant_pattern as \"Merchant/Bill\",\n    category as \"Category\",\n    subcategory as \"Subcategory\",\n    recurrence_type as \"Frequency\",\n    ROUND(estimated_monthly_cost, 2) as \"Monthly Cost\",\n    TO_CHAR(estimated_next_due_date, 'YYYY-MM-DD') as \"Est. Due Date\",\n    days_until_due as \"Days Until Due\",\n    payment_priority as \"Priority\",\n    ROUND(projected_next_month_impact, 2) as \"Projected Impact\",\n    subscription_likelihood_score as \"Confidence %\"\n  FROM reporting.rpt_next_month_recurring_bills\n  WHERE days_until_due >= 0\n)\nSELECT *\nFROM projected_bills\nUNION ALL\nSELECT\n  'No projected recurring bills from recent activity' as \"Merchant/Bill\",\n  'Informational' as \"Category\",\n  NULL as \"Subcategory\",\n  'N/A' as \"Frequency\",\n  0::numeric as \"Monthly Cost\",\n  NULL as \"Est. Due Date\",\n  NULL::integer as \"Days Until Due\",\n  'Low' as \"Priority\",\n  0::numeric as \"Projected Impact\",\n  NULL::integer as \"Confidence %\"\nWHERE NOT EXISTS (SELECT 1 FROM projected_bills)\nORDER BY \"Days Until Due\" ASC NULLS LAST, \"Monthly Cost\" DESC;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Next Month Recurring Bills & Projected Impact",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "AI-generated cash flow recommendations and insights",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 24,
+        "h": 6
+      },
+      "id": 8,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  cash_flow_recommendation as \"Cash Flow Recommendation\",\n  CASE \n    WHEN forecasted_next_month_net_flow > 0 \n    THEN 'Positive: $' || ROUND(forecasted_next_month_net_flow, 0)\n    ELSE 'Negative: $' || ROUND(ABS(forecasted_next_month_net_flow), 0)\n  END as \"Forecasted Next Month\",\n  CASE \n    WHEN days_expenses_covered IS NOT NULL \n    THEN ROUND(days_expenses_covered, 1) || ' days'\n    ELSE 'N/A'\n  END as \"Days Expenses Covered\"\nFROM reporting.rpt_cash_flow_analysis \nWHERE budget_year_month = (SELECT MAX(budget_year_month) FROM reporting.rpt_cash_flow_analysis WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM'));",
+          "refId": "A"
+        }
+      ],
+      "title": "Cash Flow Recommendations & Forecast",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Net, inflow and outflow across the most recent twelve months of available data (internal transfers excluded).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "inflow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Inflow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#4caf50",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "outflow"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Outflow"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#f44336",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "net"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Net"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#2196f3",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 12,
+        "h": 8
+      },
+      "id": 210,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH months AS (\n  SELECT DISTINCT DATE_TRUNC('month', transaction_date)::date AS period_date\n  FROM reporting.fct_transactions_enhanced\n  WHERE COALESCE(is_internal_transfer, FALSE) = FALSE\n),\nlatest AS (\n  SELECT MAX(period_date) AS latest_month FROM months\n),\nbase AS (\n  SELECT\n    DATE_TRUNC('month', f.transaction_date)::timestamp AS time,\n    SUM(CASE WHEN f.transaction_amount > 0 THEN f.transaction_amount ELSE 0 END) AS inflow,\n    SUM(CASE WHEN f.transaction_amount < 0 THEN f.transaction_amount ELSE 0 END) AS outflow,\n    SUM(f.transaction_amount) AS net\n  FROM reporting.fct_transactions_enhanced f\n  CROSS JOIN latest\n  WHERE COALESCE(f.is_internal_transfer, FALSE) = FALSE\n    AND DATE_TRUNC('month', f.transaction_date)::date BETWEEN date_trunc('month', $__timeFrom()::timestamp)::date AND latest_month\n  GROUP BY 1\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  date_trunc('month', $__timeTo()::timestamp) AS time,\n  0::numeric AS inflow,\n  0::numeric AS outflow,\n  0::numeric AS net\nWHERE NOT EXISTS (SELECT 1 FROM base)\nORDER BY time;\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Cashflow Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Account-level inflow, outflow and net position for the latest three months (internal transfers excluded).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 45,
+        "w": 12,
+        "h": 8
+      },
+      "id": 211,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Net"
+          }
+        ]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH monthly AS (\n  SELECT\n    DATE_TRUNC('month', f.transaction_date)::date AS period_date,\n    f.account_key,\n    SUM(CASE WHEN f.transaction_amount > 0 THEN f.transaction_amount ELSE 0 END) AS inflow,\n    SUM(CASE WHEN f.transaction_amount < 0 THEN f.transaction_amount ELSE 0 END) AS outflow,\n    SUM(f.transaction_amount) AS net,\n    COUNT(*) AS transactions\n  FROM reporting.fct_transactions_enhanced f\n  WHERE COALESCE(f.is_internal_transfer, FALSE) = FALSE\n  GROUP BY 1, 2\n),\nlatest AS (\n  SELECT MAX(period_date) AS latest_month FROM monthly\n),\nwindowed AS (\n  SELECT m.*\n  FROM monthly m\n  CROSS JOIN latest\n  WHERE m.period_date BETWEEN date_trunc('month', $__timeFrom()::timestamp)::date AND latest_month\n),\nbase AS (\n  SELECT\n    TO_CHAR(w.period_date, 'YYYY-MM') AS \"Month\",\n    COALESCE(a.bank_name, 'Unknown') AS \"Bank\",\n    COALESCE(REPLACE(a.account_name, '_', ' '), REPLACE(w.account_key, '_', ' ')) AS \"Account\",\n    ROUND(w.inflow, 2) AS \"Inflow\",\n    ROUND(w.outflow, 2) AS \"Outflow\",\n    ROUND(w.net, 2) AS \"Net\",\n    w.transactions AS \"Transactions\"\n  FROM windowed w\n  LEFT JOIN reporting.dim_accounts_enhanced a ON a.account_key = w.account_key\n  ORDER BY w.period_date DESC, w.net DESC\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  TO_CHAR(date_trunc('month', $__timeTo()::timestamp), 'YYYY-MM') AS \"Month\",\n  'No data' AS \"Bank\",\n  'No account activity' AS \"Account\",\n  0::numeric AS \"Inflow\",\n  0::numeric AS \"Outflow\",\n  0::numeric AS \"Net\",\n  0::bigint AS \"Transactions\"\nWHERE NOT EXISTS (SELECT 1 FROM base);\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Last 3 Months Net by Account",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "**CURRENT MONTH OUTFLOW BREAKDOWN & RISK ANALYSIS**\n\n**What This Shows:** Complete breakdown of spending by category for the most recent complete month.\n\n**Column Definitions:**\n* **Current Month ($):** Total amount spent in this category THIS MONTH (sum of all transactions)\n* **# Transactions:** Number of individual transactions in this category this month\n* **Largest Transaction ($):** Single biggest transaction amount within this category this month\n* **% of Total:** This category's share of total monthly outflows\n* **% Change vs Historical:** How much this month's total differs from the 6-month average (>100% = significantly above normal)\n* **Risk Flag:** Automated assessment based on spending patterns\n\n**Risk Flag Meanings:**\n\u00f0\u0178\u201d\u00b4 **High Uncategorized Spending:** >$500 in uncategorized transactions (needs review)\n\u00f0\u0178\u201d\u00b4 **Significantly Above Historical Average:** >200% of normal spending for this category\n\u00f0\u0178\u0178\u00a0 **Contains Large Transaction:** Includes transaction >$1,000\n\u00f0\u0178\u0178\u00a2 **Normal:** Spending within expected ranges\n\n**Example:** If 'Food & Drink' shows $1,065 with 29 transactions, that's $1,065 TOTAL spent across 29 separate purchases this month. time_control:latest_snapshot",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Risk Flag"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "High Uncategorized Spending": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "Significantly Above Historical Average": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "Contains Large Transaction": {
+                        "color": "yellow",
+                        "index": 2
+                      },
+                      "Normal": {
+                        "color": "green",
+                        "index": 3
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "unit",
+                "value": "string"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "% Change vs Historical"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 50
+                    },
+                    {
+                      "color": "orange",
+                      "value": 100
+                    },
+                    {
+                      "color": "red",
+                      "value": 200
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "% of Total"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "# Transactions"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 59,
+        "w": 24,
+        "h": 10
+      },
+      "id": 200,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  category as \"Category\",\n  subcategory as \"Subcategory\",\n  current_month_outflows as \"Current Month ($)\",\n  transaction_count as \"# Transactions\",\n  largest_transaction as \"Largest Transaction ($)\",\n  pct_of_total_outflows as \"% of Total\",\n  pct_change_vs_historical as \"% Change vs Historical\",\n  risk_flag as \"Risk Flag\"\nFROM reporting.rpt_current_month_outflow_analysis\nORDER BY current_month_outflows DESC\nLIMIT 15;\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Month Outflow Breakdown and Risk Analysis",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "**MONTH-OVER-MONTH VARIANCE ANALYSIS**\n\n**What This Shows:** How spending in each category changed compared to last month and recent trends.\n\n**Column Definitions:**\n* **Current Month ($):** Total spent in this category this month (same as above panel)\n* **MoM Variance ($):** Dollar change vs last month (positive = spent more, negative = spent less)\n* **MoM % Change:** Percentage change vs last month (e.g., +50% = spent 50% more than last month)\n* **vs 3-Month Avg ($):** Dollar difference vs rolling 3-month average\n* **Spending Flag:** Alert level based on variance patterns\n\n**Spending Flag Meanings:**\n\u00f0\u0178\u201d\u00b4 **High vs Average:** Current month >150% of 3-month rolling average\n\u00f0\u0178\u0178\u00a0 **High vs Prior Month:** Current month >200% of last month\n\u00f0\u0178\u201d\u00b4 **High Uncategorized:** >$1,000 in uncategorized spending\n\u00f0\u0178\u0178\u00a2 **Normal:** Spending within normal variance ranges\n\n**How to Read:** If 'Entertainment' shows MoM Variance of +$932 (+458%), you spent $932 MORE this month than last month (458% increase).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MoM % Change"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 25
+                    },
+                    {
+                      "color": "orange",
+                      "value": 50
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Spending Flag"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "High vs Average": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "High vs Prior Month": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "High Uncategorized": {
+                        "color": "red",
+                        "index": 2
+                      },
+                      "Normal": {
+                        "color": "green",
+                        "index": 3
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "unit",
+                "value": "string"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 69,
+        "w": 24,
+        "h": 8
+      },
+      "id": 201,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  category as \"Category\",\n  subcategory as \"Subcategory\",\n  total_outflows as \"Current Month ($)\",\n  mom_variance as \"MoM Variance ($)\",\n  mom_pct_change as \"MoM % Change\",\n  rolling_avg_variance as \"vs 3-Month Avg ($)\",\n  spending_flag as \"Spending Flag\"\nFROM reporting.rpt_cash_flow_drivers_analysis\nWHERE budget_year_month = (SELECT MAX(budget_year_month) FROM reporting.rpt_cash_flow_drivers_analysis WHERE budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM'))\n  AND total_outflows > 100\nORDER BY ABS(mom_variance) DESC\nLIMIT 12;",
+          "refId": "A"
+        }
+      ],
+      "title": "Month-over-Month Variance Analysis",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "**Shows monthly spending categories with unusual risk patterns** - All amounts are TOTAL MONTHLY spending by category/subcategory, not individual transactions.\n\n**Risk Level Definitions:**\n* **HIGH:** Categories requiring immediate attention (Uncategorized >$500 OR spending >200% of historical average)\n* **MEDIUM:** Contains large transactions (>$1000) or single transaction >$1000 total\n* **LOW:** Normal variations within expected ranges\n\n**Column Explanations:**\n* **Amount ($):** Total monthly outflows for this category (e.g., $225 = spent $225 total in this category this month)\n* **Risk Description:** Specific reason for flagging (e.g., 'Significantly Above Historical Average')\n* **Details:** Memo from largest transaction in the category for context\n\n**Example:** If 'Zona' shows $225 with HIGH risk, this means you spent $225 total on Zona-related transactions this month, which is significantly higher than your historical monthly average for this category.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Risk Level"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "HIGH": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "MEDIUM": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "LOW": {
+                        "color": "yellow",
+                        "index": 2
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "unit",
+                "value": "string"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 77,
+        "w": 24,
+        "h": 8
+      },
+      "id": 202,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH ranked AS (\n  SELECT\n    category AS \"Category\",\n    subcategory AS \"Subcategory\",\n    current_month_outflows AS \"Amount ($)\",\n    CASE\n      WHEN risk_flag = 'High Uncategorized Spending' THEN 'HIGH'\n      WHEN risk_flag = 'Significantly Above Historical Average' THEN 'HIGH'\n      WHEN risk_flag = 'Contains Large Transaction' THEN 'MEDIUM'\n      WHEN risk_flag = 'Single Large Transaction' THEN 'MEDIUM'\n      ELSE 'LOW'\n    END AS \"Risk Level\",\n    risk_flag AS \"Risk Description\",\n    largest_transaction_memo AS \"Details\"\n  FROM reporting.rpt_current_month_outflow_analysis\n  WHERE risk_flag != 'Normal'\n),\nbase AS (\n  SELECT *\n  FROM ranked\n  ORDER BY \"Amount ($)\" DESC\n  LIMIT 15\n)\nSELECT * FROM base\nUNION ALL\nSELECT\n  'No Alerts' AS \"Category\",\n  'No unusual outflows in latest month' AS \"Subcategory\",\n  0::numeric AS \"Amount ($)\",\n  'LOW' AS \"Risk Level\",\n  'Normal' AS \"Risk Description\",\n  'No anomalies detected' AS \"Details\"\nWHERE NOT EXISTS (SELECT 1 FROM base);\n-- time scope: $__timeTo() (latest outflow alert snapshot)\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Spending Risk Alerts and Large Transactions",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Quick view of data-quality blockers for the latest complete month.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          },
+          "links": [
+            {
+              "title": "View Outflows Reconciliation Exceptions",
+              "url": "/d/outflows_reconciliation?orgId=1&${__url_time_range}",
+              "targetBlank": true
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "detail"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 53,
+        "w": 12,
+        "h": 6
+      },
+      "id": 903,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH available_months AS (\n  SELECT budget_year_month,\n         to_date(budget_year_month || '-01', 'YYYY-MM-DD') AS month_date\n  FROM reporting.rpt_monthly_budget_summary\n  WHERE budget_year_month >= TO_CHAR($__timeFrom()::date, 'YYYY-MM')\n    AND budget_year_month < TO_CHAR($__timeTo()::date, 'YYYY-MM')\n),\nlatest_period AS (\n  SELECT MAX(month_date) AS month_date\n  FROM available_months\n),\nperiod_bounds AS (\n  SELECT month_date,\n         month_date AS month_start,\n         (month_date + INTERVAL '1 month' - INTERVAL '1 day')::date AS month_end\n  FROM latest_period\n),\nstale_accounts AS (\n  SELECT COUNT(*) AS stale_accounts\n  FROM reporting.dim_accounts_enhanced\n  WHERE account_last_transaction_date < (SELECT month_end FROM period_bounds) - INTERVAL '45 days'\n),\ntransfer_pairs AS (\n  SELECT\n    transaction_date::date AS txn_date,\n    transaction_amount_abs AS amount_abs,\n    SUM(CASE WHEN transaction_amount < 0 THEN 1 ELSE 0 END) AS out_count,\n    SUM(CASE WHEN transaction_amount > 0 THEN 1 ELSE 0 END) AS in_count\n  FROM reporting.fct_transactions_enhanced\n  WHERE COALESCE(is_internal_transfer, FALSE)\n    AND transaction_date >= (SELECT month_start FROM period_bounds)\n    AND transaction_date <= (SELECT month_end FROM period_bounds)\n  GROUP BY 1,2\n),\nunmatched_transfers AS (\n  SELECT COALESCE(SUM(ABS(out_count - in_count)), 0) AS unmatched_count\n  FROM transfer_pairs\n),\nuncategorized AS (\n  SELECT uncategorized_pct\n  FROM reporting.rpt_outflows_insights_dashboard\n  WHERE period_date = (SELECT month_date FROM period_bounds)\n)\nSELECT 'Stale accounts (45d+ no activity)' AS metric,\n       COALESCE((SELECT stale_accounts FROM stale_accounts), 0)::text AS value,\n       'Accounts without recent transactions' AS detail\nUNION ALL\nSELECT 'Unmatched internal transfers',\n       COALESCE((SELECT unmatched_count FROM unmatched_transfers), 0)::text,\n       'Proxy count based on paired in/out amounts'\nUNION ALL\nSELECT 'Uncategorized spend %',\n       CONCAT(ROUND(COALESCE((SELECT uncategorized_pct FROM uncategorized), 0), 1), '%'),\n       'Share of outflows currently uncategorized';",
+          "refId": "A"
+        }
+      ],
+      "title": "Data Quality Callouts",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "description": "Top uncategorized merchants (latest complete month).",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total Spend"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last Seen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time: YYYY-MM-DD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 53,
+        "w": 12,
+        "h": 6
+      },
+      "id": 904,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH uncategorized AS (\n  SELECT\n    COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), '')) AS original_memo,\n    COUNT(*) AS transaction_count,\n    SUM(ABS(ft.transaction_amount)) AS total_amount,\n    MAX(ft.transaction_date) AS last_transaction_date\n  FROM reporting.fct_transactions ft\n  LEFT JOIN reporting.dim_categories dc ON ft.category_key = dc.category_key\n  WHERE dc.level_1_category = 'Uncategorized'\n    AND ft.transaction_amount < 0\n    AND NOT COALESCE(ft.is_internal_transfer, FALSE)\n    AND COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), '')) IS NOT NULL\n  GROUP BY COALESCE(NULLIF(TRIM(ft.transaction_memo), ''), NULLIF(TRIM(ft.transaction_description), ''))\n  HAVING COUNT(*) >= 2 OR SUM(ABS(ft.transaction_amount)) >= 100\n),\ndata AS (\n  SELECT\n    original_memo,\n    transaction_count,\n    ROUND(total_amount, 2) AS total_spend,\n    last_transaction_date,\n    CASE\n      WHEN total_amount >= 1000 THEN 'HIGH'\n      WHEN total_amount >= 500 THEN 'MEDIUM'\n      WHEN total_amount >= 100 THEN 'LOW'\n      ELSE 'MINOR'\n    END AS priority_level\n  FROM uncategorized\n  ORDER BY total_amount DESC\n  LIMIT 10\n)\nSELECT\n  original_memo AS \"Merchant\",\n  transaction_count AS \"Txn Count\",\n  total_spend AS \"Total Spend\",\n  last_transaction_date AS \"Last Seen\",\n  priority_level AS \"Priority\"\nFROM data\nUNION ALL\nSELECT 'None', 0, 0, NULL::date, 'N/A'\nWHERE NOT EXISTS (SELECT 1 FROM data)\n-- time scope: $__timeTo() (view aggregates all-time data)",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Uncategorized Merchants",
+      "type": "table"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "cash-flow",
+    "analysis",
+    "personal-finance",
+    "dashboard",
+    "time_control_rollout:tranche_a",
+    "time_control_archetype:historical_windowed"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1M/M",
+    "to": "now/M"
+  },
+  "timepicker": {
+    "hidden": false,
+    "quick_ranges": [
+      {
+        "from": "now-1M/M",
+        "to": "now/M",
+        "display": "Last complete month"
+      },
+      {
+        "from": "now/y",
+        "to": "now",
+        "display": "Year to date"
+      },
+      {
+        "from": "now-12M/M",
+        "to": "now/M",
+        "display": "Trailing 12 months"
+      }
+    ]
+  },
+  "timezone": "",
+  "title": "02 - Cash Flow Analysis",
+  "uid": "cash_flow_analysis",
+  "version": 1,
+  "weekStart": ""
+}
