@@ -5,6 +5,8 @@ scheduler:
 run_coordinator:
   module: dagster.core.run_coordinator
   class: QueuedRunCoordinator
+  config:
+    max_concurrent_runs: 1
 
 run_launcher:
   module: dagster_docker
@@ -19,6 +21,14 @@ run_launcher:
       - DAGSTER_POSTGRES_PASSWORD
       - POSTGRES_ADMIN_USER
       - POSTGRES_ADMIN_PASSWORD
+      - PERSONAL_FINANCE_POSTGRES_HOST
+      - PERSONAL_FINANCE_POSTGRES_PORT
+      - PERSONAL_FINANCE_POSTGRES_DB
+      - PERSONAL_FINANCE_POSTGRES_USER
+      - PERSONAL_FINANCE_POSTGRES_PASSWORD
+      - PERSONAL_FINANCE_POSTGRES_ADMIN_USER
+      - PERSONAL_FINANCE_POSTGRES_ADMIN_PASSWORD
+      - PERSONAL_FINANCE_GRAFANA_USER
       - DBT_EXECUTION_CONTEXT
       - GRAFANA_URL
       - GRAFANA_USER
@@ -49,6 +59,7 @@ run_launcher:
         # coles-llm-shopper run workers need the data volume to reach
         # coles_state.json and keep_token.json at runtime.
         - coles-llm-shopper_coles_data:/app/data
+        - /docker/data/qif_personal_finance/qif_files:/app/pipeline_personal_finance/qif_files
 
 run_storage:
   module: dagster_postgres.run_storage
