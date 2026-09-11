@@ -56,6 +56,12 @@ run_launcher:
       - TELEGRAM_BOT_TOKEN
       - TELEGRAM_CHAT_ID
       - ALERTMANAGER_URL
+      # Escape hatch for a KNOWN-INCOMPLETE harvest when the recorder SSH path is
+      # genuinely unavailable. Off by default: the harvest now fails rather than
+      # silently degrading to the HA history API (which cannot see attribute-only
+      # vote rows). Set to 1 here and rebuild the daemon only for a deliberate,
+      # time-boxed recovery. See home-climate-dagster PR #6.
+      - HARVEST_ALLOW_HISTORY_FALLBACK=0
     network:
       env: DAGSTER_NETWORK
     container_kwargs:
@@ -66,10 +72,24 @@ run_launcher:
         # coles-llm-shopper run workers need the data volume to reach
         # coles_state.json and keep_token.json at runtime.
         - coles-llm-shopper_coles_data:/app/data
-        - /docker/data/qif_personal_finance/qif_files:/app/pipeline_personal_finance/qif_files
-        # home-climate run workers SSH to the HA recorder; same host path the
-        # home-climate code-server mounts (${HOME}/.ssh -> /home/phil/.ssh).
-        - /home/phil/.ssh:/root/.ssh:ro
+        # Finance run workers must receive the same private inputs as the
+        # code-location container. These are read-only: ingestion/dbt may read
+        # them but must never mutate host QIF exports or balance-anchor seeds.
+        - /docker/data/qif_personal_finance/qif_files:/app/pipeline_personal_finance/qif_files:ro
+        - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/known_values.csv:/app/pipeline_personal_finance/dbt_finance/seeds/known_values.csv:ro
+        - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/mortgage_patch_data.csv:/app/pipeline_personal_finance/dbt_finance/seeds/mortgage_patch_data.csv:ro
+        - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/property_assets.csv:/app/pipeline_personal_finance/dbt_finance/seeds/property_assets.csv:ro
+        - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/property_valuation_overrides.csv:/app/pipeline_personal_finance/dbt_finance/seeds/property_valuation_overrides.csv:ro
+        - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/recommendation_outcomes.csv:/app/pipeline_personal_finance/dbt_finance/seeds/recommendation_outcomes.csv:ro
+        # home-climate run workers SSH to the HA recorder. These MUST match the
+        # paths the home-climate code-location container mounts, because assets
+        # execute in per-run containers launched by DockerRunLauncher, not in the
+        # code-location container. The previous `/home/phil/.ssh:/root/.ssh:ro`
+        # mount was unusable: the image runs as uid 1000 (home-climate) and /root
+        # is mode 0700, so every harvest failed with ssh exit 255 and silently
+        # fell back to the HA history API. See CLO Correction Review 2026-09-02.
+        - /home/phil/.ssh/ha_recorder_home_climate:/run/secrets/ha_recorder_ssh_key:ro
+        - /home/phil/.ssh/ha_recorder_known_hosts:/run/secrets/ha_recorder_known_hosts:ro
 
 run_storage:
   module: dagster_postgres.run_storage
@@ -124,4 +144,3 @@ compute_logs:
   class: LocalComputeLogManager
   config:
     base_dir: /tmp/dagster-compute-logs
-

@@ -1,6 +1,13 @@
 .env
-.venv
+.venv/
 __pycache__/
 *.pyc
 .DS_Store
 
+# Editor / hand-made backups of live config
+*.bak*
+*.pre_update
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
