@@ -56,6 +56,12 @@ run_launcher:
       - TELEGRAM_BOT_TOKEN
       - TELEGRAM_CHAT_ID
       - ALERTMANAGER_URL
+      # Escape hatch for a KNOWN-INCOMPLETE harvest when the recorder SSH path is
+      # genuinely unavailable. Off by default: the harvest now fails rather than
+      # silently degrading to the HA history API (which cannot see attribute-only
+      # vote rows). Set to 1 here and rebuild the daemon only for a deliberate,
+      # time-boxed recovery. See home-climate-dagster PR #6.
+      - HARVEST_ALLOW_HISTORY_FALLBACK=0
     network:
       env: DAGSTER_NETWORK
     container_kwargs:
