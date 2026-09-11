@@ -1,0 +1,51 @@
+# Infrastructure repository: compose, dagster.yaml, Grafana provisioning, one
+# init script. Hygiene-only hooks -- there is no Python source to lint or test.
+#
+# Install with `uv run --locked pre-commit install`; run by hand with
+# `uv run --locked pre-commit run --all-files`.
+minimum_pre_commit_version: "4.0.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.15.1
+    hooks:
+      - id: hadolint-docker
+        files: (^|/)[Dd]ockerfile$
+        args: ['--failure-threshold', 'warning']
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.10
+    hooks:
+      - id: uv-lock
+
+  - repo: local
+    hooks:
+      # The compose file is the deployment; make sure it still renders with the
+      # variables .env.example declares before it can be committed.
+      - id: compose-config
+        name: docker compose config
+        entry: bash -c 'set -a; . ./.env.example; set +a; docker compose config --quiet'
+        language: system
+        pass_filenames: false
+        files: ^(docker-compose\.yml|\.env\.example|Dockerfile|postgres/dockerfile)$

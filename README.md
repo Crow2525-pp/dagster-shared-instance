@@ -22,4 +22,3 @@ docker compose up -d --build
 ```
 
 Bring the module repos up on the same Docker network named by `DAGSTER_NETWORK`.
-
