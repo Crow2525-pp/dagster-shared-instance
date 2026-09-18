@@ -49,6 +49,8 @@ run_launcher:
       - HA_URL
       - HA_TOKEN
       - HA_NOTIFY_SERVICE
+      # coles-llm-shopper: HA Telegram-bot entry that announces submitted orders
+      - HA_TELEGRAM_CONFIG_ENTRY_ID
       # home-climate comfort job: recorder SSH harvest, app DB, and digest/alert
       - HOME_CLIMATE_POSTGRES_DB
       - HA_RECORDER_SSH_HOST
