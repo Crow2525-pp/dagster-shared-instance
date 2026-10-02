@@ -13,9 +13,12 @@ ENV PYTHONFAULTHANDLER=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml ./
+# Build from the lock. An unlocked `uv sync` resolves the newest Dagster on
+# every rebuild; on 2026-10-02 that pulled dagster-postgres 0.29.25, which needs
+# psycopg 3, and the webserver and daemon crash-looped on start.
+COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --no-dev
+    uv sync --frozen --no-dev
 
 RUN mkdir -p "${DAGSTER_HOME}"
 COPY dagster.yaml workspace.yaml "${DAGSTER_HOME}/"
