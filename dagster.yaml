@@ -84,6 +84,7 @@ run_launcher:
         - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/property_valuation_overrides.csv:/app/pipeline_personal_finance/dbt_finance/seeds/property_valuation_overrides.csv:ro
         - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/recommendation_outcomes.csv:/app/pipeline_personal_finance/dbt_finance/seeds/recommendation_outcomes.csv:ro
         - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/r001_flow_exclusions.csv:/app/pipeline_personal_finance/dbt_finance/seeds/r001_flow_exclusions.csv:ro
+        - /home/phil/projects/qif_personal_finance/pipeline_personal_finance/dbt_finance/seeds/projection_assumptions.csv:/app/pipeline_personal_finance/dbt_finance/seeds/projection_assumptions.csv:ro
         # home-climate run workers SSH to the HA recorder. These MUST match the
         # paths the home-climate code-location container mounts, because assets
         # execute in per-run containers launched by DockerRunLauncher, not in the
